@@ -1,0 +1,54 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Environment variables (NEVER commit)
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+
+# Database & secrets
+*.sql
+schema.sql
+migration*.sql
+apply_schema.py
+
+# Temporary scripts
+*.mjs
+fix_*.mjs
+nuke_*.mjs
+cleanup_*.mjs
+wipe_*.mjs
+clean_*.mjs
+check_*.mjs
+audit_*.mjs
+test_*.mjs
+
+# Documentation & internal files
+documentation/
+changes.txt
+Design.text
+do not touch.txt
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
