@@ -1,6 +1,5 @@
 import jsPDF from 'jspdf';
 import { Download } from 'lucide-react';
-import { formatDual } from '../lib/utils';
 
 interface MilestoneItem {
   title: string;

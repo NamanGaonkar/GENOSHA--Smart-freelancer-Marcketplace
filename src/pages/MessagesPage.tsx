@@ -428,7 +428,6 @@ export default function MessagesPage() {
         <IncomingCallModal
           callerName={incomingCall.callerName}
           callerAvatar={incomingCall.callerAvatar}
-          roomName={incomingCall.roomName}
           onAccept={acceptCall}
           onDecline={declineCall}
         />

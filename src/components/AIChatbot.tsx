@@ -88,14 +88,11 @@ function chunkText(text: string, maxLen = 300): string[] {
 }
 
 let speakingQueue: string[] = [];
-let isSpeaking = false;
 
 function processQueue() {
   if (!window.speechSynthesis || speakingQueue.length === 0) {
-    isSpeaking = false;
     return;
   }
-  isSpeaking = true;
   const chunk = speakingQueue.shift()!;
   const utter = new SpeechSynthesisUtterance(chunk);
   const voice = getBestVoice();
@@ -115,7 +112,6 @@ function speak(text: string) {
   if (!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
   speakingQueue = [];
-  isSpeaking = false;
   const clean = stripMarkdown(text);
   speakingQueue = chunkText(clean, 300);
   processQueue();
@@ -124,7 +120,6 @@ function speak(text: string) {
 function stopSpeaking() {
   if (window.speechSynthesis) window.speechSynthesis.cancel();
   speakingQueue = [];
-  isSpeaking = false;
 }
 
 // ── Chatbot Component ─────────────────────────────────────────

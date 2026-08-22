@@ -14,25 +14,19 @@ export function VideoCallModal({ roomId, otherUserName, otherUserAvatar, onClose
   const { profile } = useAuth();
   const [minimized, setMinimized] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [jitsiLoaded, setJitsiLoaded] = useState(false);
   const [jitsiError, setJitsiError] = useState(false);
 
   useEffect(() => {
     let mounted = true;
-    let api: any = null;
-
     async function loadJitsi() {
       try {
-        const JitsiMeetExternalAPI = (await import('@jitsi/react-sdk')).default;
-        // Fallback: use JitsiMeetExternalAPI directly if available
+        await import('@jitsi/react-sdk');
         if (!mounted) return;
-        setJitsiLoaded(true);
       } catch (err) {
         console.error('Failed to load Jitsi:', err);
         if (mounted) setJitsiError(true);
       }
     }
-
     loadJitsi();
     return () => { mounted = false; };
   }, []);
@@ -134,12 +128,11 @@ export function VideoCallModal({ roomId, otherUserName, otherUserAvatar, onClose
 interface IncomingCallModalProps {
   callerName: string;
   callerAvatar?: string;
-  roomName: string;
   onAccept: () => void;
   onDecline: () => void;
 }
 
-export function IncomingCallModal({ callerName, callerAvatar, roomName, onAccept, onDecline }: IncomingCallModalProps) {
+export function IncomingCallModal({ callerName, callerAvatar, onAccept, onDecline }: IncomingCallModalProps) {
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 10000,
@@ -221,7 +214,7 @@ export function useVideoCall(roomId: string) {
     return () => { channel.unsubscribe(); };
   }, [profile, roomId]);
 
-  const startCall = useCallback(async (otherName: string, otherAvatar?: string) => {
+  const startCall = useCallback(async () => {
     const roomName = `genosha-call-${roomId}-${Date.now().toString(36)}`;
     setActiveCall(roomName);
 
