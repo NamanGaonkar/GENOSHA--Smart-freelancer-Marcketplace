@@ -91,7 +91,7 @@ export function VideoCallModal({ roomId, otherUserName, otherUserAvatar, onClose
               </div>
             ) : (
               <iframe
-                src={`https://meet.jit.si/${roomId}#config.startWithAudioMuted=false&config.startWithVideoMuted=false&config.toolbarButtons=["microphone","camera","desktop","fullscreen","hangup","tileview"]&userInfo.displayName=${encodeURIComponent(profile.full_name || 'User')}`}
+                src={`https://meet.jit.si/${roomId}#config.toolbarButtons=%5B%22microphone%22%2C%22camera%22%2C%22desktop%22%2C%22fullscreen%22%2C%22hangup%22%2C%22tileview%22%5D&config.startWithAudioMuted=false&config.startWithVideoMuted=false&config.disableDeepLinking=true&userInfo.displayName=${encodeURIComponent(profile.full_name || 'User')}`}
                 style={{ width: '100%', height: '100%', border: 'none' }}
                 allow="camera; microphone; fullscreen; display-capture; screen-sharing"
                 title="Video Call"
