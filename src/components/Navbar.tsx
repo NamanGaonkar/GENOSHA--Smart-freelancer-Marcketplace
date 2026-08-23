@@ -5,6 +5,14 @@ import { useTheme } from '../contexts/ThemeContext';
 import { NotificationBell } from './Notifications';
 import { Briefcase, MessageSquare, FileText, User, LogOut, LayoutDashboard, Shield, Menu, X } from 'lucide-react';
 
+const ICON_BTN: React.CSSProperties = {
+  width: 36, height: 36,
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  borderRadius: 10, border: '1px solid var(--border)',
+  background: 'var(--bg-input)', color: 'var(--text-sec)',
+  cursor: 'pointer', transition: 'all 0.15s', flexShrink: 0,
+};
+
 export default function Navbar() {
   const { profile, signOut } = useAuth();
   const { isDark, toggle } = useTheme();
@@ -20,9 +28,9 @@ export default function Navbar() {
       to={to}
       onClick={() => mobile && setMobileOpen(false)}
       style={{
-        display: 'flex', alignItems: 'center', gap: 8, padding: mobile ? '12px 16px' : '7px 14px',
+        display: 'flex', alignItems: 'center', gap: 7, padding: mobile ? '12px 16px' : '7px 13px',
         borderRadius: 8, fontSize: mobile ? 14 : 13, fontWeight: 400, textDecoration: 'none',
-        transition: 'all 0.15s ease',
+        transition: 'all 0.15s ease', whiteSpace: 'nowrap',
         background: isActive(to) ? 'var(--accent-dim)' : 'transparent',
         color: isActive(to) ? 'var(--accent)' : mobile ? 'var(--text)' : 'var(--text-sec)',
       }}
@@ -54,63 +62,69 @@ export default function Navbar() {
         background: 'var(--bg-nav)', backdropFilter: 'blur(20px)',
         borderBottom: '1px solid var(--border)', transition: 'background 0.3s, border-color 0.3s',
       }}>
+        {/* Inner container — aligns with dashboard content */}
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', height: 52, gap: 12 }}>
-            {/* Logo */}
-            <div style={{ display: 'flex', alignItems: 'center', justifySelf: 'start' }}>
-              <Link to={profile ? '/dashboard' : '/'} style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flexShrink: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 4, borderRadius: 10, background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56, width: '100%' }}>
+
+            {/* ═══ LEFT: Logo & Brand ═══ */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 180, flexShrink: 0 }}>
+              <Link to={profile ? '/dashboard' : '/'} style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 5, borderRadius: 10, background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)' }}>
                   <img src="/logo.png" alt="GENOSHA" style={{ height: 24, width: 24, objectFit: 'contain', display: 'block' }} />
                 </div>
-                <span style={{ fontFamily: "'YDYoonche L', 'YDYoonche M', sans-serif", fontSize: 17, fontWeight: 400, color: 'var(--text)', letterSpacing: '-0.01em' }}>GENOSHA</span>
+                <span style={{ fontFamily: "'YDYoonche L', 'YDYoonche M', sans-serif", fontSize: 18, fontWeight: 400, color: 'var(--text)', letterSpacing: '-0.01em' }}>GENOSHA</span>
               </Link>
             </div>
 
-            {/* Desktop nav links — centered */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 2, justifySelf: 'center' }} className="nav-desktop">
+            {/* ═══ CENTER: Nav Links ═══ */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'center' }} className="nav-desktop">
               {navLinks.map((l) => <NavLink key={l.to} {...l} />)}
               <NavLink to="/profile" label="Profile" icon={<User size={15} />} />
             </div>
 
-            {/* Right side */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'end', gap: 6, flexShrink: 0 }}>
+            {/* ═══ RIGHT: Controls ═══ */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 180, justifyContent: 'flex-end', flexShrink: 0 }}>
               <NotificationBell />
-              <button onClick={toggle} className="gen-theme-toggle" title={isDark ? 'Light mode' : 'Dark mode'}
-                style={{ width: 32, height: 32, fontSize: 14 }}>
+
+              <button
+                onClick={toggle}
+                title={isDark ? 'Light mode' : 'Dark mode'}
+                style={ICON_BTN}
+              >
                 {isDark ? '☀' : '☾'}
               </button>
 
               {profile && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }} className="nav-desktop">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} className="nav-desktop">
                   <div style={{
-                    width: 28, height: 28, borderRadius: '50%', overflow: 'hidden',
+                    width: 32, height: 32, borderRadius: '50%', overflow: 'hidden',
                     background: 'var(--accent-dim)', border: '1px solid var(--accent-border)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                   }}>
                     {(profile as any).avatar_url ? (
-                      <img src={(profile as any).avatar_url} alt="" style={{ width: 28, height: 28, objectFit: 'cover' }} />
+                      <img src={(profile as any).avatar_url} alt="" style={{ width: 32, height: 32, objectFit: 'cover' }} />
                     ) : (
-                      <span style={{ color: 'var(--accent)', fontSize: 11, fontWeight: 600 }}>
+                      <span style={{ color: 'var(--accent)', fontSize: 12, fontWeight: 600 }}>
                         {profile.full_name?.charAt(0)?.toUpperCase() || 'U'}
                       </span>
                     )}
                   </div>
-                  <span className="gen-truncate" style={{ color: 'var(--text-sec)', fontSize: 12, maxWidth: 80 }}>{profile.full_name}</span>
+                  <span className="gen-truncate" style={{ color: 'var(--text-sec)', fontSize: 12, maxWidth: 90 }}>{profile.full_name}</span>
                 </div>
               )}
 
               <button onClick={handleSignOut} className="nav-desktop"
-                style={{ background: 'none', border: 'none', padding: 6, borderRadius: 6, color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', transition: 'color 0.15s' }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--red)')}
-                onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
+                style={{ ...ICON_BTN, borderColor: 'transparent', background: 'transparent' }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.2)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-sec)'; e.currentTarget.style.borderColor = 'transparent'; }}
                 title="Sign out">
                 <LogOut size={15} />
               </button>
 
               {/* Mobile hamburger */}
               <button onClick={() => setMobileOpen(!mobileOpen)} className="nav-mobile-btn"
-                style={{ background: 'none', border: 'none', padding: 6, color: 'var(--text)', cursor: 'pointer', display: 'none' }}>
-                {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+                style={{ ...ICON_BTN, display: 'none' }}>
+                {mobileOpen ? <X size={18} /> : <Menu size={18} />}
               </button>
             </div>
           </div>
@@ -120,24 +134,25 @@ export default function Navbar() {
       {/* Mobile drawer */}
       {mobileOpen && (
         <>
-          <div onClick={() => setMobileOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 59 }} />
+          <div onClick={() => setMobileOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', zIndex: 59 }} />
           <div style={{
-            position: 'fixed', top: 52, right: 0, bottom: 0, width: 280, zIndex: 60,
+            position: 'fixed', top: 56, right: 0, bottom: 0, width: 280, zIndex: 60,
             background: 'var(--bg-card)', borderLeft: '1px solid var(--border)',
             display: 'flex', flexDirection: 'column', padding: '16px 0', overflowY: 'auto',
+            boxShadow: '-8px 0 30px rgba(0,0,0,0.3)',
           }}>
             {/* User info */}
             {profile && (
-              <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--border)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--accent-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--accent-border)' }}>
+              <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--accent-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--accent-border)', flexShrink: 0 }}>
                   {(profile as any).avatar_url ? (
-                    <img src={(profile as any).avatar_url} alt="" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }} />
+                    <img src={(profile as any).avatar_url} alt="" style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }} />
                   ) : (
-                    <span style={{ color: 'var(--accent)', fontSize: 14, fontWeight: 600 }}>{profile.full_name?.charAt(0) || 'U'}</span>
+                    <span style={{ color: 'var(--accent)', fontSize: 15, fontWeight: 600 }}>{profile.full_name?.charAt(0) || 'U'}</span>
                   )}
                 </div>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>{profile.full_name}</div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{profile.full_name}</div>
                   <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'capitalize' }}>{profile.role}</div>
                 </div>
               </div>

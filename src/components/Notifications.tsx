@@ -120,8 +120,11 @@ export function NotificationBell() {
       <button
         onClick={() => setOpen(!open)}
         style={{
-          position: 'relative', background: 'none', border: 'none', cursor: 'pointer',
-          color: 'var(--text-muted)', padding: 6, borderRadius: 8, transition: 'color 0.2s',
+          position: 'relative', width: 36, height: 36,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          borderRadius: 10, border: '1px solid var(--border)',
+          background: 'var(--bg-input)', cursor: 'pointer',
+          color: 'var(--text-sec)', transition: 'all 0.15s', flexShrink: 0,
         }}
       >
         <Bell size={18} />
