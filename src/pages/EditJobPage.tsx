@@ -132,7 +132,7 @@ export default function EditJobPage() {
             {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: 'var(--text-muted)', marginBottom: 6 }}>Budget Type</label>
             <select value={budgetType} onChange={(e) => setBudgetType(e.target.value as any)} className="gen-input" style={{ width: '100%' }}>

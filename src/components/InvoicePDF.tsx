@@ -20,6 +20,22 @@ interface InvoiceData {
   completedAt: string;
 }
 
+function formatCurrency(amount: number, currency?: string): string {
+  if (currency === 'inr') {
+    return 'INR ' + new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(amount);
+  }
+  return 'USD ' + new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(amount);
+}
+
+function secondaryCurrency(amount: number, currency?: string): string {
+  if (currency === 'inr') {
+    const usd = Math.round(amount / 83.33);
+    return '(~USD ' + new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(usd) + ')';
+  }
+  const inr = Math.round(amount * 83.33);
+  return '(~INR ' + new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(inr) + ')';
+}
+
 export function generateInvoicePDF(data: InvoiceData): jsPDF {
   const doc = new jsPDF();
   const w = doc.internal.pageSize.getWidth();
@@ -72,7 +88,6 @@ export function generateInvoicePDF(data: InvoiceData): jsPDF {
   y = 50;
   const halfW = contentWidth / 2;
 
-  // Bill To
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
   doc.setTextColor(16, 185, 129);
@@ -82,16 +97,15 @@ export function generateInvoicePDF(data: InvoiceData): jsPDF {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
   doc.setTextColor(15, 23, 42);
-  doc.text(data.clientName, margin, y);
+  doc.text(data.clientName.substring(0, 35), margin, y);
   if (data.clientEmail) {
     y += 5;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.setTextColor(100, 116, 139);
-    doc.text(data.clientEmail, margin, y);
+    doc.text(data.clientEmail.substring(0, 40), margin, y);
   }
 
-  // Bill From
   y = 50;
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
@@ -102,13 +116,13 @@ export function generateInvoicePDF(data: InvoiceData): jsPDF {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
   doc.setTextColor(15, 23, 42);
-  doc.text(data.freelancerName, margin + halfW, y);
+  doc.text(data.freelancerName.substring(0, 35), margin + halfW, y);
   if (data.freelancerEmail) {
     y += 5;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.setTextColor(100, 116, 139);
-    doc.text(data.freelancerEmail, margin + halfW, y);
+    doc.text(data.freelancerEmail.substring(0, 40), margin + halfW, y);
   }
 
   // ── Project Info Bar ───────────────────────────
@@ -122,7 +136,9 @@ export function generateInvoicePDF(data: InvoiceData): jsPDF {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
   doc.setTextColor(15, 23, 42);
-  doc.text(data.jobTitle.substring(0, 55), margin + 4, y + 7);
+  // Wrap long titles across multiple lines
+  const titleLines = doc.splitTextToSize(data.jobTitle, contentWidth - 8);
+  doc.text(titleLines[0].substring(0, 60), margin + 4, y + 7);
 
   // ── Milestones Table ───────────────────────────
   y = 96;
@@ -140,7 +156,13 @@ export function generateInvoicePDF(data: InvoiceData): jsPDF {
 
   // Table Rows
   y += 12;
-  data.milestones.forEach((m, i) => {
+
+  // If we have milestones, render them; otherwise render a single row for the whole contract
+  const rows = data.milestones.length > 0
+    ? data.milestones
+    : [{ title: data.jobTitle, amount: data.totalAmount, status: 'completed' }];
+
+  rows.forEach((m, i) => {
     const rowH = 10;
 
     // Alternating row bg
@@ -155,16 +177,16 @@ export function generateInvoicePDF(data: InvoiceData): jsPDF {
     doc.setTextColor(100, 116, 139);
     doc.text(`${i + 1}`, margin + 4, y + 4);
 
-    // Milestone title
+    // Milestone title (wrap if needed)
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
     doc.setTextColor(15, 23, 42);
-    const title = m.title.length > 42 ? m.title.substring(0, 39) + '...' : m.title;
+    const title = m.title.length > 40 ? m.title.substring(0, 37) + '...' : m.title;
     doc.text(title, margin + 14, y + 4);
 
     // Status badge
-    const statusLabel = m.status === 'approved' ? 'Completed' : m.status.replace('_', ' ');
-    const sc: [number, number, number] = m.status === 'approved' ? [16, 185, 129] : [245, 158, 11];
+    const statusLabel = m.status === 'approved' || m.status === 'completed' ? 'Completed' : m.status === 'approved_released' ? 'Paid' : m.status.replace(/_/g, ' ');
+    const sc: [number, number, number] = (m.status === 'approved' || m.status === 'completed' || m.status === 'approved_released') ? [16, 185, 129] : [245, 158, 11];
     doc.setFontSize(7);
     doc.setFont('helvetica', 'bold');
     const sW = doc.getStringUnitWidth(statusLabel) * 7 / doc.internal.scaleFactor + 6;
@@ -177,10 +199,7 @@ export function generateInvoicePDF(data: InvoiceData): jsPDF {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
     doc.setTextColor(15, 23, 42);
-    const shortAmt = data.currency === 'inr'
-      ? new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(m.amount)
-      : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(m.amount);
-    doc.text(shortAmt, w - margin - 4, y + 4, { align: 'right' });
+    doc.text(formatCurrency(m.amount, data.currency), w - margin - 4, y + 4, { align: 'right' });
 
     // Subtle bottom line
     doc.setDrawColor(230, 230, 230);
@@ -190,31 +209,42 @@ export function generateInvoicePDF(data: InvoiceData): jsPDF {
     y += rowH;
   });
 
-  // ── Total ──────────────────────────────────────
-  y += 6;
+  // ── Subtotal / Platform Fee / Total ────────────
+  y += 8;
   doc.setDrawColor(16, 185, 129);
   doc.setLineWidth(0.5);
   doc.line(margin, y, w - margin, y);
 
   y += 8;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10);
-  doc.setTextColor(100, 116, 139);
-  doc.text('TOTAL', margin + 4, y);
-
-  // Total — show primary currency, then secondary below
-  const primaryAmt = data.currency === 'inr'
-    ? new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(data.totalAmount)
-    : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(data.totalAmount);
-  const secondaryAmt = data.currency === 'inr'
-    ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(Math.round(data.totalAmount / 83.33))
-    : new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(Math.round(data.totalAmount * 83.33));
-  doc.setFontSize(14);
-  doc.setTextColor(16, 185, 129);
-  doc.text(primaryAmt, w - margin - 4, y, { align: 'right' });
+  doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   doc.setTextColor(100, 116, 139);
-  doc.text(`(${secondaryAmt})`, w - margin - 4, y + 6, { align: 'right' });
+  doc.text('Subtotal', margin + 4, y);
+  doc.text(formatCurrency(data.totalAmount, data.currency), w - margin - 4, y, { align: 'right' });
+
+  y += 6;
+  doc.text('Platform Fee (0%)', margin + 4, y);
+  doc.text(formatCurrency(0, data.currency), w - margin - 4, y, { align: 'right' });
+
+  y += 2;
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.3);
+  doc.line(margin, y, w - margin, y);
+
+  y += 7;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(15, 23, 42);
+  doc.text('TOTAL', margin + 4, y);
+  doc.setFontSize(13);
+  doc.setTextColor(16, 185, 129);
+  doc.text(formatCurrency(data.totalAmount, data.currency), w - margin - 4, y, { align: 'right' });
+
+  y += 5;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(100, 116, 139);
+  doc.text(secondaryCurrency(data.totalAmount, data.currency), w - margin - 4, y, { align: 'right' });
 
   // ── Payment Note ───────────────────────────────
   y += 12;
@@ -224,30 +254,31 @@ export function generateInvoicePDF(data: InvoiceData): jsPDF {
   doc.setFontSize(7.5);
   doc.setTextColor(22, 101, 52);
   doc.text(
-    'Payment processed via GENOSHA escrow system. This invoice serves as proof of settled escrow for the listed milestones.',
+    'Payment processed via GENOSHA escrow system. This invoice serves as proof of settled escrow.',
     margin + 4, y + 3
   );
 
   // ── Footer ─────────────────────────────────────
-  const footerY = 277;
+  y += 16;
   doc.setDrawColor(226, 232, 240);
   doc.setLineWidth(0.3);
-  doc.line(margin, footerY, w - margin, footerY);
+  doc.line(margin, y, w - margin, y);
 
+  y += 6;
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
   doc.setTextColor(16, 185, 129);
-  doc.text('GENOSHA', margin, footerY + 6);
+  doc.text('GENOSHA', margin, y);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7);
   doc.setTextColor(100, 116, 139);
-  doc.text('The Freelance Marketplace', margin + 25, footerY + 6);
-  doc.text('genosha.io', w - margin, footerY + 6, { align: 'right' });
+  doc.text('The Freelance Marketplace', margin + 25, y);
+  doc.text('genosha.io', w - margin, y, { align: 'right' });
 
   // Bottom green bar
   doc.setFillColor(16, 185, 129);
-  doc.rect(0, 293, w, 3, 'F');
+  doc.rect(0, y + 4, w, 2, 'F');
 
   return doc;
 }

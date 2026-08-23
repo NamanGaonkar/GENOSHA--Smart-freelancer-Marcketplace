@@ -201,7 +201,7 @@ export default function JobDetailPage() {
         <div className="gen-card" style={{ padding: 28, marginBottom: 20 }}>
           <h2 className="gen-heading" style={{ fontSize: 18, marginBottom: 20 }}>Submit a Proposal</h2>
           <form onSubmit={handleSubmitProposal} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="gen-label">Bid Amount ({(job as any).budget_currency === 'inr' ? '₹ INR' : '$ USD'})</label>
                 <input type="number" value={bidAmount} onChange={(e) => setBidAmount(e.target.value)}

@@ -178,7 +178,7 @@ export default function CreateJobPage() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <label className="gen-label">Budget Type</label>
             <select value={budgetType} onChange={(e) => setBudgetType(e.target.value as 'fixed' | 'hourly' | 'weekly')} className="gen-input">

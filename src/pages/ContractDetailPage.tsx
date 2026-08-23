@@ -321,7 +321,7 @@ export default function ContractDetailPage() {
             <form onSubmit={handleCreateMilestone} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <input type="text" value={msTitle} onChange={(e) => setMsTitle(e.target.value)} placeholder="Milestone title" required className="gen-input" />
               <textarea value={msDescription} onChange={(e) => setMsDescription(e.target.value)} placeholder="Description (optional)" rows={2} className="gen-input" style={{ borderRadius: 16, padding: '14px 18px' }} />
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <input type="number" value={msAmount} onChange={(e) => setMsAmount(e.target.value)} placeholder="Amount ($)" required min={1} className="gen-input" />
                 <input type="date" value={msDeadline} onChange={(e) => setMsDeadline(e.target.value)} className="gen-input" />
               </div>

@@ -124,7 +124,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 20 }}>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
           {[
             { icon: <Briefcase size={16} />, label: 'Available Jobs', value: recentJobs.length },
             { icon: <FileText size={16} />, label: 'Active Contracts', value: activeContracts.length },
@@ -140,7 +140,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Charts */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: 14, marginBottom: 14 }}>
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_1.5fr] gap-3 md:gap-4 mb-4">
           <div className="gen-card" style={{ overflow: 'hidden' }}>
             <div className="gen-card-header">
               <div className="gen-card-header-left">
@@ -371,7 +371,7 @@ export default function DashboardPage() {
           <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 2 }}>Welcome back, {profile?.full_name}</p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 20 }}>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
           {[
             { icon: <Briefcase size={16} />, label: 'Total Jobs', value: jobs.length },
             { icon: <Briefcase size={16} />, label: 'Active Jobs', value: activeJobs.length },
@@ -386,7 +386,7 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 14, marginBottom: 14 }}>
+        <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr] gap-3 md:gap-4 mb-4">
           <div className="gen-card" style={{ overflow: 'hidden' }}>
             <div className="gen-card-header">
               <div className="gen-card-header-left">

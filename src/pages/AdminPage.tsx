@@ -228,7 +228,7 @@ export default function AdminPage() {
       {tab === 'overview' && (
         <>
           {/* Row 0: 4 Stats — full width, even columns */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 20 }}>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-5">
             {[
               { icon: <Users size={16} />, label: 'Total Users', value: users.length },
               { icon: <Briefcase size={16} />, label: 'Total Jobs', value: jobs.length },
@@ -243,7 +243,7 @@ export default function AdminPage() {
           </div>
 
           {/* Row 1: User Roles + Contract Status — 2-col equal */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 16, marginBottom: 16 }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             {roleData.length > 0 && (
               <div className="gen-card" style={{ padding: 20 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 12 }}>User Roles Distribution</div>
@@ -288,7 +288,7 @@ export default function AdminPage() {
           </div>
 
           {/* Row 2: Platform Volume Trend + User Growth — 2-col equal */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 16, marginBottom: 16 }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             {volumeOverTime.length > 0 && (
               <div className="gen-card" style={{ padding: 20 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -337,7 +337,7 @@ export default function AdminPage() {
           </div>
 
           {/* Row 3: Job Status + Jobs Over Time — 2-col equal */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 16 }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {jobStatusData.length > 0 && (
               <div className="gen-card" style={{ padding: 20 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 12 }}>Job Status Distribution</div>
@@ -445,7 +445,7 @@ export default function AdminPage() {
                   </div>
                   {isExpanded && (
                     <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--border)' }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                         <div>
                           <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Description</div>
                           <p className="gen-line-clamp-3 gen-break-words" style={{ fontSize: 13, color: 'var(--text-sec)', lineHeight: 1.6 }}>{job.description || 'No description'}</p>
@@ -522,7 +522,7 @@ export default function AdminPage() {
                 </div>
               </div>
             )}
-            <div style={{ padding: '0 28px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" style={{ padding: '0 28px' }}>
               <InfoCard label="Role" value={<span style={{ textTransform: 'capitalize' }}>{selectedUser.role}</span>} icon={<Shield size={12} />} />
               {selectedUser.role === 'freelancer' && (<>
                 <InfoCard label="Experience" value={selectedUser.experience_level} icon={<Star size={12} />} />

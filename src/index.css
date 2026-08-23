@@ -71,7 +71,7 @@ body { background: var(--bg); color: var(--text); }
 .gen-page {
   min-height: 100vh;
   background: var(--bg);
-  padding: 16px 24px 40px;
+  padding: 68px 24px 40px;
   max-width: 1280px;
   width: 100%;
   margin: 0 auto;
@@ -339,8 +339,8 @@ input[type='file'].gen-input::file-selector-button {
   .nav-desktop { display: none !important; }
   .nav-mobile-btn { display: flex !important; }
 
-  /* Page padding */
-  .gen-page { padding: 60px 12px 80px; }
+  /* Page padding — Navbar is 52px, so pad below it */
+  .gen-page { padding: 64px 12px 80px; }
 
   /* Cards full width */
   .gen-card { border-radius: 12px; }
@@ -352,14 +352,18 @@ input[type='file'].gen-input::file-selector-button {
   [style*="gridTemplateColumns: 1.5fr 1fr"] { grid-template-columns: 1fr !important; }
   [style*="gridTemplateColumns: 1fr 1fr"] { grid-template-columns: 1fr !important; }
   [style*="gridTemplateColumns: repeat(auto-fit"] { grid-template-columns: 1fr !important; }
+
   /* Dashboard sections */
   .gen-dash-grid { grid-template-columns: 1fr !important; }
   .gen-dash-grid-2 { grid-template-columns: 1fr !important; }
   .gen-dash-stats { grid-template-columns: repeat(2, 1fr) !important; }
+
   /* Admin panels */
   [style*="gridTemplateColumns: repeat(auto-fit, minmax(140"] { grid-template-columns: repeat(2, 1fr) !important; }
+
   /* Table scroll */
   .gen-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
   /* Contract detail page */
   [style*="maxWidth: 800"] { padding-left: 12px !important; padding-right: 12px !important; }
 
@@ -377,21 +381,8 @@ input[type='file'].gen-input::file-selector-button {
   /* Auth pages */
   .auth-card { padding: 32px 24px !important; margin: 0 12px !important; }
 
-  /* Messages page */
-  .msg-sidebar { width: 100% !important; }
-  .msg-chat { width: 100% !important; }
-
   /* Modal full width on mobile */
   .gen-modal-card { width: 95% !important; max-width: 95% !important; margin: 12px !important; }
-
-  /* Feature cards stack */
-  [style*="gridTemplateColumns: repeat(4, 1fr)"] { grid-template-columns: 1fr !important; }
-
-  /* About cards stack */
-  [style*="gridTemplateColumns: repeat(auto-fit"] { grid-template-columns: 1fr !important; }
-
-  /* Horizontal scroll for contract detail */
-  [style*="display: flex"][style*="flexWrap: wrap"] { gap: 8px !important; }
 
   /* List items compact */
   .gen-list-item { padding: 10px 14px; }
@@ -401,10 +392,17 @@ input[type='file'].gen-input::file-selector-button {
 
   /* Status badges don't wrap */
   .gen-badge { white-space: nowrap; }
+
+  /* Message bubbles: don't over-constrain */
+  .msg-bubble { max-width: 85% !important; }
+
+  /* Card header text wraps */
+  .gen-card-header { padding: 12px 14px; }
+  .gen-card-header span { font-size: 12px !important; }
 }
 
 @media (max-width: 480px) {
   /* Very small screens */
-  .gen-page { padding: 56px 8px 80px; }
+  .gen-page { padding: 64px 8px 80px; }
   .gen-btn-primary { padding: 10px 16px; font-size: 12px; }
 }

@@ -262,7 +262,7 @@ export default function ProfilePage() {
                     ))}
                   </div>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div><label className="gen-label">{rateType === 'hourly' ? 'Hourly Rate (₹ INR)' : rateType === 'fixed' ? 'Starting From (₹ INR)' : 'Weekly Rate (₹ INR)'}</label><input type="number" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} placeholder={rateType === 'hourly' ? 'e.g. 2500' : rateType === 'fixed' ? 'e.g. 20000' : 'e.g. 50000'} className="gen-input" /></div>
                   <div><label className="gen-label">Experience Level</label>
                     <select value={experienceLevel} onChange={(e) => setExperienceLevel(e.target.value)} className="gen-input">
@@ -353,7 +353,7 @@ export default function ProfilePage() {
             )}
 
             {/* Common fields */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div><label className="gen-label">Location</label><input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Mumbai, India" className="gen-input" /></div>
               <div><label className="gen-label">Languages</label><input type="text" value={languages} onChange={(e) => setLanguages(e.target.value)} placeholder="e.g. English, Hindi" className="gen-input" /></div>
             </div>
