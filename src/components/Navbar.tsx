@@ -64,10 +64,10 @@ export default function Navbar() {
       }}>
         {/* Inner container — aligns with dashboard content */}
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56, width: '100%' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', height: 56, width: '100%' }}>
 
             {/* ═══ LEFT: Logo & Brand ═══ */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 180, flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifySelf: 'start' }}>
               <Link to={profile ? '/dashboard' : '/'} style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 5, borderRadius: 10, background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)' }}>
                   <img src="/logo.png" alt="GENOSHA" style={{ height: 24, width: 24, objectFit: 'contain', display: 'block' }} />
@@ -76,14 +76,14 @@ export default function Navbar() {
               </Link>
             </div>
 
-            {/* ═══ CENTER: Nav Links ═══ */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'center' }} className="nav-desktop">
+            {/* ═══ CENTER: Nav Links — always exactly in the middle ═══ */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 2, justifySelf: 'center' }} className="nav-desktop">
               {navLinks.map((l) => <NavLink key={l.to} {...l} />)}
               <NavLink to="/profile" label="Profile" icon={<User size={15} />} />
             </div>
 
             {/* ═══ RIGHT: Controls ═══ */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 180, justifyContent: 'flex-end', flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifySelf: 'end' }}>
               <NotificationBell />
 
               <button
