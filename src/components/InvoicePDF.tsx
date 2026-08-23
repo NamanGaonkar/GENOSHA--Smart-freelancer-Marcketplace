@@ -258,27 +258,30 @@ export function generateInvoicePDF(data: InvoiceData): jsPDF {
     margin + 4, y + 3
   );
 
-  // ── Footer ─────────────────────────────────────
-  y += 16;
+  // ── Footer (pinned to absolute bottom of A4 page) ──────
+  const pageH = doc.internal.pageSize.getHeight(); // 297mm ≈ 841.89pt for A4
+  const footerY = pageH - margin; // bottom edge
+
+  // Footer divider line
   doc.setDrawColor(226, 232, 240);
   doc.setLineWidth(0.3);
-  doc.line(margin, y, w - margin, y);
+  doc.line(margin, footerY - 14, w - margin, footerY - 14);
 
-  y += 6;
+  // Footer text
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
   doc.setTextColor(16, 185, 129);
-  doc.text('GENOSHA', margin, y);
+  doc.text('GENOSHA', margin, footerY - 7);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7);
   doc.setTextColor(100, 116, 139);
-  doc.text('The Freelance Marketplace', margin + 25, y);
-  doc.text('genosha.io', w - margin, y, { align: 'right' });
+  doc.text('The Freelance Marketplace', margin + 25, footerY - 7);
+  doc.text('genosha.io', w - margin, footerY - 7, { align: 'right' });
 
-  // Bottom green bar
+  // Bottom green accent bar
   doc.setFillColor(16, 185, 129);
-  doc.rect(0, y + 4, w, 2, 'F');
+  doc.rect(0, footerY - 2, w, 2, 'F');
 
   return doc;
 }
