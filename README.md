@@ -14,7 +14,6 @@
 
 GENOSHA is a full-stack freelancer marketplace platform built for the gig economy. Clients post jobs, freelancers submit proposals, and both parties collaborate through real-time chat, milestone tracking, and video calls — all within a clean Linear-style dark theme.
 
-**Project ID:** INF-260  
 **Category:** Business / Gig Economy  
 **Domain:** Freelancer Marketplace & Talent Exchange
 
@@ -75,7 +74,7 @@ GENOSHA is a full-stack freelancer marketplace platform built for the gig econom
 ## Project Structure
 
 ```
-GENOSHA INF-260/
+GENOSHA/
 ├── public/                    # Static assets (logo.png, background.png)
 ├── src/
 │   ├── components/            # Reusable UI components
@@ -140,7 +139,7 @@ GENOSHA INF-260/
 ```bash
 # Clone the repository
 git clone <repo-url>
-cd "GENOSHA INF-260"
+cd GENOSHA
 
 # Install dependencies
 npm install
