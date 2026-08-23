@@ -195,19 +195,16 @@ export default function MessagesPage() {
   const jobTitle = selectedRoomData?.contract?.job?.title || null;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 68px)', borderRadius: 12, overflow: 'hidden', border: '1px solid var(--border)', background: 'var(--bg-card)' }}>
+    <div className="flex flex-col md:flex-row" style={{ height: 'calc(100vh - 68px)', borderRadius: 12, overflow: 'hidden', border: '1px solid var(--border)', background: 'var(--bg-card)' }}>
       {/* ═══ ROOM LIST ═══ */}
       <div
         style={{
-          width: '100%',
           height: '100%',
-          borderRight: 'none',
           background: 'var(--bg-card)',
-          display: 'flex',
           flexDirection: 'column',
           flexShrink: 0,
         }}
-        className={selectedRoom ? 'hidden md:flex' : 'flex'}
+        className={selectedRoom ? 'hidden md:flex' : 'flex w-full md:w-72 flex-col border-r border-[var(--border)]'}
       >
         <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>Chats</span>
@@ -256,8 +253,8 @@ export default function MessagesPage() {
 
       {/* ═══ CHAT AREA ═══ */}
       <div
-        style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'var(--bg)', width: '100%' }}
-        className={!selectedRoom ? 'hidden md:flex' : 'flex'}
+        style={{ flex: 1, flexDirection: 'column', overflow: 'hidden', background: 'var(--bg)' }}
+        className={!selectedRoom ? 'hidden md:flex' : 'flex w-full'}
       >
         {!selectedRoom ? (
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

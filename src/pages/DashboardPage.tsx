@@ -210,7 +210,7 @@ export default function DashboardPage() {
 
         {/* Skills in Demand */}
           {skillsNeeded.length > 0 && (
-            <div className="gen-card" style={{ overflow: 'hidden' }}>
+            <div className="gen-card mt-4" style={{ overflow: 'hidden' }}>
               <div className="gen-card-header">
                 <div className="gen-card-header-left">
                   <div className="gen-card-icon" style={{ background: 'rgba(6,182,212,0.1)', color: CYAN }}><BarChart3 size={16} /></div>
