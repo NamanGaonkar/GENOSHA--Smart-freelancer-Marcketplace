@@ -235,7 +235,7 @@ export default function AdminPage() {
               { icon: <TrendingUp size={16} />, label: 'Active Contracts', value: activeContracts },
               { icon: <DollarSign size={16} />, label: 'Platform Volume', value: `${formatDual(totalVolume, 'usd')}`, accent: true },
             ].map((s) => (
-              <div key={s.label} className="gen-card" style={{ padding: '18px 16px', ...(s.accent ? { background: 'rgba(16,185,129,0.06)', borderColor: 'rgba(16,185,129,0.15)' } : {}) }}>
+              <div key={s.label} className="gen-card min-w-0" style={{ padding: '18px 16px', ...(s.accent ? { background: 'rgba(16,185,129,0.06)', borderColor: 'rgba(16,185,129,0.15)' } : {}) }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: s.accent ? GREEN : 'var(--text-muted)', marginBottom: 8, fontSize: 12 }}>{s.icon}<span>{s.label}</span></div>
                 <div style={{ fontSize: 22, fontWeight: 600, color: s.accent ? GREEN : 'var(--text)' }}>{s.value}</div>
               </div>
@@ -245,7 +245,7 @@ export default function AdminPage() {
           {/* Row 1: User Roles + Contract Status — 2-col equal */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             {roleData.length > 0 && (
-              <div className="gen-card" style={{ padding: 20 }}>
+              <div className="gen-card min-w-0" style={{ padding: 20 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 12 }}>User Roles Distribution</div>
                 <ResponsiveContainer width="100%" height={180}>
                   <PieChart>
@@ -266,7 +266,7 @@ export default function AdminPage() {
             )}
 
             {contractStatusData.length > 0 && (
-              <div className="gen-card" style={{ padding: 20 }}>
+              <div className="gen-card min-w-0" style={{ padding: 20 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 12 }}>Contract Status Overview</div>
                 <ResponsiveContainer width="100%" height={180}>
                   <PieChart>
@@ -290,7 +290,7 @@ export default function AdminPage() {
           {/* Row 2: Platform Volume Trend + User Growth — 2-col equal */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             {volumeOverTime.length > 0 && (
-              <div className="gen-card" style={{ padding: 20 }}>
+              <div className="gen-card min-w-0" style={{ padding: 20 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
                   <DollarSign size={14} color={GREEN} /> Platform Volume Trend
                 </div>
@@ -313,7 +313,7 @@ export default function AdminPage() {
             )}
 
             {userGrowth.length > 0 && (
-              <div className="gen-card" style={{ padding: 20 }}>
+              <div className="gen-card min-w-0" style={{ padding: 20 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Users size={14} color={CYAN} /> User Growth Over Time
                 </div>
@@ -339,7 +339,7 @@ export default function AdminPage() {
           {/* Row 3: Job Status + Jobs Over Time — 2-col equal */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {jobStatusData.length > 0 && (
-              <div className="gen-card" style={{ padding: 20 }}>
+              <div className="gen-card min-w-0" style={{ padding: 20 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 12 }}>Job Status Distribution</div>
                 <ResponsiveContainer width="100%" height={180}>
                   <PieChart>
@@ -360,7 +360,7 @@ export default function AdminPage() {
             )}
 
             {monthlyJobs.length > 0 && (
-              <div className="gen-card" style={{ padding: 20 }}>
+              <div className="gen-card min-w-0" style={{ padding: 20 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
                   <TrendingUp size={14} color={PURPLE} /> Jobs Posted Over Time
                 </div>
@@ -428,7 +428,7 @@ export default function AdminPage() {
             {filteredJobs.map((job) => {
               const isExpanded = expandedJob === job.id;
               return (
-                <div key={job.id} className="gen-card" style={{ padding: '14px 18px' }}>
+                <div key={job.id} className="gen-card min-w-0" style={{ padding: '14px 18px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, cursor: 'pointer' }} onClick={() => setExpandedJob(isExpanded ? null : job.id)}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

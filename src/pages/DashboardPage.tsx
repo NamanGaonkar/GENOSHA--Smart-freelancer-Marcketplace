@@ -131,17 +131,17 @@ export default function DashboardPage() {
             { icon: <CheckCircle size={16} />, label: 'Completed', value: completedContracts.length },
             { icon: <DollarSign size={16} />, label: 'Total Earned', value: formatDual(totalEarned, freelancerCurrency), accent: true },
           ].map((s) => (
-            <div key={s.label} className="gen-card" style={{ position: 'relative', padding: '16px 14px', ...(s.accent ? { background: 'rgba(16,185,129,0.06)', borderColor: 'rgba(16,185,129,0.15)' } : {}) }}>
+            <div key={s.label} className="gen-card min-w-0" style={{ position: 'relative', padding: '16px 14px', overflow: 'hidden', ...(s.accent ? { background: 'rgba(16,185,129,0.06)', borderColor: 'rgba(16,185,129,0.15)' } : {}) }}>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: s.accent ? GREEN : 'var(--text-muted)', marginBottom: 6, fontSize: 11 }}>{s.icon}<span>{s.label}</span></div>
-              <div style={{ fontSize: 20, fontWeight: 600, color: s.accent ? GREEN : 'var(--text)' }}>{s.value}</div>
+              <div className="gen-break-words" style={{ fontSize: 20, fontWeight: 600, color: s.accent ? GREEN : 'var(--text)' }}>{s.value}</div>
             </div>
           ))}
         </div>
 
         {/* Charts */}
         <div className="grid grid-cols-1 md:grid-cols-[1fr_1.5fr] gap-3 md:gap-4 mb-4">
-          <div className="gen-card" style={{ overflow: 'hidden' }}>
+          <div className="gen-card min-w-0" style={{ overflow: 'hidden' }}>
             <div className="gen-card-header">
               <div className="gen-card-header-left">
                 <div className="gen-card-icon" style={{ background: 'rgba(16,185,129,0.1)', color: GREEN }}><CheckCircle size={16} /></div>
@@ -178,7 +178,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="gen-card" style={{ overflow: 'hidden' }}>
+          <div className="gen-card min-w-0" style={{ overflow: 'hidden' }}>
             <div className="gen-card-header">
               <div className="gen-card-header-left">
                 <div className="gen-card-icon" style={{ background: 'rgba(16,185,129,0.1)', color: GREEN }}><TrendingUp size={16} /></div>
@@ -210,7 +210,7 @@ export default function DashboardPage() {
 
         {/* Skills in Demand */}
           {skillsNeeded.length > 0 && (
-            <div className="gen-card mt-4" style={{ overflow: 'hidden' }}>
+            <div className="gen-card min-w-0 mt-4" style={{ overflow: 'hidden' }}>
               <div className="gen-card-header">
                 <div className="gen-card-header-left">
                   <div className="gen-card-icon" style={{ background: 'rgba(6,182,212,0.1)', color: CYAN }}><BarChart3 size={16} /></div>
@@ -231,7 +231,7 @@ export default function DashboardPage() {
             </div>
           )}
 
-          <div className="gen-card" style={{ overflow: 'hidden', marginTop: 16 }}>
+          <div className="gen-card min-w-0" style={{ overflow: 'hidden', marginTop: 16 }}>
             <div className="gen-card-header">
               <div className="gen-card-header-left">
                 <div className="gen-card-icon" style={{ background: 'rgba(245,158,11,0.1)', color: AMBER }}><Send size={16} /></div>
@@ -262,7 +262,7 @@ export default function DashboardPage() {
           </div>
 
         {/* Available Jobs */}
-        <div className="gen-card" style={{ overflow: 'hidden', marginTop: 16, marginBottom: 14 }}>
+        <div className="gen-card min-w-0" style={{ overflow: 'hidden', marginTop: 16, marginBottom: 14 }}>
           <div className="gen-card-header">
             <div className="gen-card-header-left">
               <div className="gen-card-icon" style={{ background: 'rgba(16,185,129,0.1)', color: GREEN }}><Briefcase size={16} /></div>
@@ -295,7 +295,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Active Contracts */}
-        <div className="gen-card" style={{ overflow: 'hidden' }}>
+        <div className="gen-card min-w-0" style={{ overflow: 'hidden' }}>
           <div className="gen-card-header">
             <div className="gen-card-header-left">
               <div className="gen-card-icon" style={{ background: 'rgba(167,139,250,0.1)', color: PURPLE }}><FileText size={16} /></div>
@@ -378,16 +378,16 @@ export default function DashboardPage() {
             { icon: <FileText size={16} />, label: 'Contracts', value: activeContracts.length },
             { icon: <DollarSign size={16} />, label: 'Total Spent', value: formatDual(totalSpent, clientCurrency), accent: true },
           ].map((s) => (
-            <div key={s.label} className="gen-card" style={{ position: 'relative', padding: '16px 14px', ...(s.accent ? { background: 'rgba(16,185,129,0.06)', borderColor: 'rgba(16,185,129,0.15)' } : {}) }}>
+            <div key={s.label} className="gen-card min-w-0" style={{ position: 'relative', padding: '16px 14px', overflow: 'hidden', ...(s.accent ? { background: 'rgba(16,185,129,0.06)', borderColor: 'rgba(16,185,129,0.15)' } : {}) }}>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: s.accent ? GREEN : 'var(--text-muted)', marginBottom: 6, fontSize: 11 }}>{s.icon}<span>{s.label}</span></div>
-              <div style={{ fontSize: 20, fontWeight: 600, color: s.accent ? GREEN : 'var(--text)' }}>{s.value}</div>
+              <div className="gen-break-words" style={{ fontSize: 20, fontWeight: 600, color: s.accent ? GREEN : 'var(--text)' }}>{s.value}</div>
             </div>
           ))}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr] gap-3 md:gap-4 mb-4 mt-5">
-          <div className="gen-card" style={{ overflow: 'hidden' }}>
+          <div className="gen-card min-w-0" style={{ overflow: 'hidden' }}>
             <div className="gen-card-header">
               <div className="gen-card-header-left">
                 <div className="gen-card-icon" style={{ background: 'rgba(16,185,129,0.1)', color: GREEN }}><TrendingUp size={16} /></div>
@@ -416,7 +416,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="gen-card" style={{ overflow: 'hidden' }}>
+          <div className="gen-card min-w-0" style={{ overflow: 'hidden' }}>
             <div className="gen-card-header">
               <div className="gen-card-header-left">
                 <div className="gen-card-icon" style={{ background: 'rgba(16,185,129,0.1)', color: GREEN }}><CheckCircle size={16} /></div>
@@ -460,7 +460,7 @@ export default function DashboardPage() {
         </Link>
 
         {/* Your Jobs */}
-        <div className="gen-card" style={{ overflow: 'hidden', marginBottom: 14 }}>
+        <div className="gen-card min-w-0" style={{ overflow: 'hidden', marginBottom: 14 }}>
           <div className="gen-card-header">
             <div className="gen-card-header-left">
               <div className="gen-card-icon" style={{ background: 'rgba(16,185,129,0.1)', color: GREEN }}><Briefcase size={16} /></div>
@@ -494,7 +494,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Active Contracts */}
-        <div className="gen-card" style={{ overflow: 'hidden' }}>
+        <div className="gen-card min-w-0" style={{ overflow: 'hidden' }}>
           <div className="gen-card-header">
             <div className="gen-card-header-left">
               <div className="gen-card-icon" style={{ background: 'rgba(167,139,250,0.1)', color: PURPLE }}><FileText size={16} /></div>

@@ -1,11 +1,13 @@
 @import "tailwindcss";
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; overflow-x: hidden; width: 100%; max-width: 100vw; }
+#root { overflow-x: hidden; width: 100%; max-width: 100vw; }
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   overflow-x: hidden;
+  width: 100%;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -71,11 +73,12 @@ body { background: var(--bg); color: var(--text); }
 .gen-page {
   min-height: 100vh;
   background: var(--bg);
-  padding: 68px 24px 40px;
+  padding: 68px 16px 40px;
   max-width: 1280px;
   width: 100%;
   margin: 0 auto;
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 /* ── Typography ────────────────────────────────────────── */
@@ -260,7 +263,7 @@ input[type='file'].gen-input::file-selector-button {
 .gen-line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .gen-break-words { overflow-wrap: break-word; word-break: break-word; min-width: 0; }
 .gen-force-break { overflow-wrap: anywhere; word-break: break-all; white-space: pre-wrap; }
-.gen-card { overflow: hidden; }
+.gen-card { overflow: hidden; min-width: 0; }
 
 .gen-dropzone {
   border: 2px dashed var(--border); border-radius: 12px; padding: 24px;
@@ -340,7 +343,7 @@ input[type='file'].gen-input::file-selector-button {
   .nav-mobile-btn { display: flex !important; }
 
   /* Page padding — Navbar is 52px, so pad below it */
-  .gen-page { padding: 64px 12px 80px; }
+  .gen-page { padding: 64px 12px 80px; overflow-x: hidden; }
 
   /* Cards full width */
   .gen-card { border-radius: 12px; }
@@ -405,4 +408,7 @@ input[type='file'].gen-input::file-selector-button {
   /* Very small screens */
   .gen-page { padding: 64px 8px 80px; }
   .gen-btn-primary { padding: 10px 16px; font-size: 12px; }
+  .gen-card { border-radius: 10px; }
+  .gen-card-header { padding: 10px 12px; }
+  .gen-list-item { padding: 8px 12px; }
 }

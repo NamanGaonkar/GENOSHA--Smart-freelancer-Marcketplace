@@ -54,7 +54,7 @@ export default function Navbar() {
         background: 'var(--bg-nav)', backdropFilter: 'blur(20px)',
         borderBottom: '1px solid var(--border)', transition: 'background 0.3s, border-color 0.3s',
       }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 16px' }}>
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 52 }}>
             {/* Logo */}
             <Link to={profile ? '/dashboard' : '/'} style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
