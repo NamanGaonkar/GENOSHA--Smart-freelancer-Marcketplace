@@ -46,7 +46,7 @@ function Modal({ open, onClose, children }: {
     <div onClick={onClose} className="gen-modal-backdrop"
       style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
       <div onClick={(e) => e.stopPropagation()} className="gen-modal-card"
-        style={{ width: '100%', maxWidth: 520, maxHeight: '88vh', overflowY: 'auto', position: 'relative', borderRadius: 24, background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: '0 25px 60px rgba(0,0,0,0.5)' }}>
+        style={{ width: '100%', maxWidth: 'min(520px, calc(100vw - 32px))', maxHeight: '88vh', overflowY: 'auto', overflowX: 'hidden', position: 'relative', borderRadius: 24, background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: '0 25px 60px rgba(0,0,0,0.5)' }}>
         {children}
       </div>
     </div>

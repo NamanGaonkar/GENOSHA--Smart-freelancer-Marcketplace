@@ -65,7 +65,7 @@ body {
   --chart-text: #64748b;
 }
 
-body { background: var(--bg); color: var(--text); }
+body { background: var(--bg); color: var(--text); overflow-x: hidden; }
 
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
@@ -343,10 +343,10 @@ input[type='file'].gen-input::file-selector-button {
   .nav-mobile-btn { display: flex !important; }
 
   /* Page padding — Navbar is 52px, so pad below it */
-  .gen-page { padding: 64px 12px 80px; overflow-x: hidden; }
+  .gen-page { padding: 64px 12px 80px; overflow-x: hidden; width: 100%; }
 
   /* Cards full width */
-  .gen-card { border-radius: 12px; }
+  .gen-card { border-radius: 12px; min-width: 0; }
 
   /* Grid layouts stack */
   [style*="gridTemplateColumns: repeat(4"] { grid-template-columns: repeat(2, 1fr) !important; }

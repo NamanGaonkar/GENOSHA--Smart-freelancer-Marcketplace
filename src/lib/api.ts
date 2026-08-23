@@ -309,7 +309,8 @@ export async function approveCompletion(contractId: string) {
 
   // 2. Update associated job status to completed
   if (contract?.job_id) {
-    await supabase.from('jobs').update({ status: 'completed' }).eq('id', contract.job_id);
+    const { error: jobErr } = await supabase.from('jobs').update({ status: 'completed' }).eq('id', contract.job_id);
+    if (jobErr) console.error('Failed to update job status:', jobErr);
   }
 
   // 3. Notify the freelancer
@@ -318,7 +319,7 @@ export async function approveCompletion(contractId: string) {
       user_id: contract.freelancer_id,
       type: 'contract_completed',
       title: 'Contract Completed',
-      message: `Your contract has been completed and payment has been released.`,
+      body: `Your contract has been completed and payment has been released.`,
       link: `/contracts/${contractId}`,
     });
   }
