@@ -75,7 +75,7 @@ export default function DashboardPage() {
   const freelancerCurrency = completedContracts[0]?.budget_currency || 'usd';
 
   const now = new Date();
-  const filterFuture = (entries: [string, number][]) => {
+  const filterFuture = <T,>(entries: [string, T][]) => {
     return entries.filter(([k]) => {
       const d = new Date(k);
       return d <= now;
@@ -101,14 +101,16 @@ export default function DashboardPage() {
     ].filter((d) => d.value > 0);
 
     const earningsTrend = (() => {
-      const m: Record<string, number> = {};
+      const m: Record<string, { amount: number; date: Date }> = {};
       completedContracts.forEach((c: any) => {
-        const mo = new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        m[mo] = (m[mo] || 0) + (c.total_amount || 0);
+        const d = new Date(c.created_at);
+        const mo = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        if (!m[mo]) m[mo] = { amount: 0, date: d };
+        m[mo].amount += (c.total_amount || 0);
       });
       let cumulative = 0;
-      return filterFuture(Object.entries(m)).slice(-8).map(([month, amount]) => {
-        cumulative += amount;
+      return filterFuture(Object.entries(m).sort((a, b) => a[1].date.getTime() - b[1].date.getTime())).slice(-8).map(([month, data]) => {
+        cumulative += data.amount;
         return { month, earnings: cumulative };
       });
     })();
@@ -350,14 +352,16 @@ export default function DashboardPage() {
     const clientCurrency = completedContracts[0]?.budget_currency || 'usd';
 
     const spendingTrend = (() => {
-      const m: Record<string, number> = {};
+      const m: Record<string, { amount: number; date: Date }> = {};
       completedContracts.forEach((c: any) => {
-        const mo = new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        m[mo] = (m[mo] || 0) + (c.total_amount || 0);
+        const d = new Date(c.created_at);
+        const mo = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        if (!m[mo]) m[mo] = { amount: 0, date: d };
+        m[mo].amount += (c.total_amount || 0);
       });
       let cumulative = 0;
-      return filterFuture(Object.entries(m)).slice(-8).map(([month, amount]) => {
-        cumulative += amount;
+      return filterFuture(Object.entries(m).sort((a, b) => a[1].date.getTime() - b[1].date.getTime())).slice(-8).map(([month, data]) => {
+        cumulative += data.amount;
         return { month, spending: cumulative };
       });
     })();

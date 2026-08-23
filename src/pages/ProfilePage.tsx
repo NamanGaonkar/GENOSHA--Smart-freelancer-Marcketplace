@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { updateProfile, getPortfolioItems, createPortfolioItem, deletePortfolioItem, getSkills } from '../lib/api';
+import { updateProfile, getPortfolioItems, createPortfolioItem, deletePortfolioItem, getSkills, getReviewsForUser } from '../lib/api';
 import { calcProfileCompleteness, validateFileSize, validateImageType, formatFileSize, MAX_FILE_SIZE, formatDual } from '../lib/utils';
 import type { PortfolioItem, Skill } from '../types/database';
 import toast from 'react-hot-toast';
@@ -13,6 +13,7 @@ export default function ProfilePage() {
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
   const [allSkills, setAllSkills] = useState<Skill[]>([]);
   const [showPfForm, setShowPfForm] = useState(false);
+  const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -58,6 +59,10 @@ export default function ProfilePage() {
         const [pfRes, skillRes] = await Promise.all([getPortfolioItems(profile.id), getSkills()]);
         setPortfolio(pfRes.data); setAllSkills(skillRes.data);
       }
+      // Load reviews
+      const revRes = await getReviewsForUser(profile.id);
+      setReviews(revRes.data || []);
+
       setLoading(false);
     }
     load();
@@ -233,6 +238,34 @@ export default function ProfilePage() {
               {(profile as any)?.location && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><MapPin size={12} />{(profile as any).location}</span>}
               {(profile as any)?.website && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Globe size={12} />{(profile as any).website}</span>}
               {(profile as any)?.languages && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Link2 size={12} />{(profile as any).languages}</span>}
+            </div>
+          </div>
+        )}
+
+        {/* Reviews Section */}
+        {!isAdmin && reviews.length > 0 && !editing && (
+          <div className="gen-card" style={{ padding: 20, marginTop: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+              <Star size={15} color="#f59e0b" fill="#f59e0b" />
+              <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>Reviews ({reviews.length})</span>
+              <span style={{ fontSize: 12, color: '#f59e0b', marginLeft: 4 }}>
+                {((profile as any)?.average_rating || 0).toFixed(1)} ★
+              </span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {reviews.slice(0, 5).map((r: any) => (
+                <div key={r.id} style={{ padding: '12px 14px', borderRadius: 10, background: 'var(--bg-input)', border: '1px solid var(--border)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                    <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--accent-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <span style={{ color: 'var(--accent)', fontSize: 10, fontWeight: 600 }}>{r.reviewer?.full_name?.charAt(0) || '?'}</span>
+                    </div>
+                    <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>{r.reviewer?.full_name || 'Anonymous'}</span>
+                    <span style={{ fontSize: 11, color: '#f59e0b' }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span>
+                  </div>
+                  {r.comment && <p style={{ fontSize: 12, color: 'var(--text-sec)', lineHeight: 1.5 }}>{r.comment}</p>}
+                  <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>{new Date(r.created_at).toLocaleDateString()}</div>
+                </div>
+              ))}
             </div>
           </div>
         )}

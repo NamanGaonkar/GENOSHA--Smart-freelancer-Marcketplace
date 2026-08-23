@@ -89,10 +89,10 @@ export default function MessagesPage() {
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
-  // Video call realtime channel — declared BEFORE any early return
+  // Video call realtime channel — use user-level channel so recipient gets it regardless of which room they're viewing
   useEffect(() => {
-    if (!profile || !selectedRoom) return;
-    const ch = supabase.channel(`vc-${selectedRoom}`)
+    if (!profile) return;
+    const ch = supabase.channel(`vc-user-${profile.id}`)
       .on('broadcast', { event: 'incoming_call' }, (payload) => {
         const d = payload.payload as any;
         if (d.caller_id !== profile.id) setIncomingCall({ roomName: d.room_name, callerName: d.caller_name, callerAvatar: d.caller_avatar });
@@ -103,19 +103,30 @@ export default function MessagesPage() {
       })
       .subscribe();
     return () => { ch.unsubscribe(); };
-  }, [profile?.id, selectedRoom]);
+  }, [profile?.id]);
 
   const startCall = useCallback(async (_name: string, _avatar?: string) => {
+    if (!selectedRoom || !profile) return;
     const room = `genosha-call-${selectedRoom}-${Date.now().toString(36)}`;
     setActiveCall(room);
-    const ch = supabase.channel(`vc-${selectedRoom}`);
-    await ch.send({ type: 'broadcast', event: 'incoming_call', payload: { room_name: room, caller_id: profile?.id, caller_name: profile?.full_name || 'User', caller_avatar: profile?.avatar_url } });
-  }, [selectedRoom, profile]);
+    // Get the other user's ID to send to their user-level channel
+    const roomInfo = rooms.find((r: any) => r.room?.id === selectedRoom);
+    const otherUserId = roomInfo?.other_user?.id;
+    if (otherUserId) {
+      const ch = supabase.channel(`vc-user-${otherUserId}`);
+      await ch.send({ type: 'broadcast', event: 'incoming_call', payload: { room_name: room, caller_id: profile.id, caller_name: profile.full_name || 'User', caller_avatar: (profile as any).avatar_url } });
+    }
+  }, [selectedRoom, profile, rooms]);
 
   const acceptCall = useCallback(() => { if (incomingCall) { setActiveCall(incomingCall.roomName); setIncomingCall(null); } }, [incomingCall]);
   const declineCall = useCallback(async () => {
-    if (incomingCall) { const ch = supabase.channel(`vc-${selectedRoom}`); await ch.send({ type: 'broadcast', event: 'call_declined', payload: { caller_id: profile?.id } }); setIncomingCall(null); }
-  }, [incomingCall, selectedRoom, profile]);
+    if (incomingCall) {
+      // Send decline to the caller's user-level channel
+      const ch = supabase.channel(`vc-user-${profile?.id}`);
+      await ch.send({ type: 'broadcast', event: 'call_declined', payload: { caller_id: profile?.id } });
+      setIncomingCall(null);
+    }
+  }, [incomingCall, profile]);
   const endCall = useCallback(() => { setActiveCall(null); }, []);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {

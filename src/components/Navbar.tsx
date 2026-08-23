@@ -55,23 +55,25 @@ export default function Navbar() {
         borderBottom: '1px solid var(--border)', transition: 'background 0.3s, border-color 0.3s',
       }}>
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 52 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', height: 52, gap: 12 }}>
             {/* Logo */}
-            <Link to={profile ? '/dashboard' : '/'} style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flexShrink: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 4, borderRadius: 10, background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)' }}>
-                <img src="/logo.png" alt="GENOSHA" style={{ height: 24, width: 24, objectFit: 'contain', display: 'block' }} />
-              </div>
-              <span style={{ fontFamily: "'YDYoonche L', 'YDYoonche M', sans-serif", fontSize: 17, fontWeight: 400, color: 'var(--text)', letterSpacing: '-0.01em' }}>GENOSHA</span>
-            </Link>
+            <div style={{ display: 'flex', alignItems: 'center', justifySelf: 'start' }}>
+              <Link to={profile ? '/dashboard' : '/'} style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flexShrink: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 4, borderRadius: 10, background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)' }}>
+                  <img src="/logo.png" alt="GENOSHA" style={{ height: 24, width: 24, objectFit: 'contain', display: 'block' }} />
+                </div>
+                <span style={{ fontFamily: "'YDYoonche L', 'YDYoonche M', sans-serif", fontSize: 17, fontWeight: 400, color: 'var(--text)', letterSpacing: '-0.01em' }}>GENOSHA</span>
+              </Link>
+            </div>
 
-            {/* Desktop nav links */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 2 }} className="nav-desktop">
+            {/* Desktop nav links — centered */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 2, justifySelf: 'center' }} className="nav-desktop">
               {navLinks.map((l) => <NavLink key={l.to} {...l} />)}
               <NavLink to="/profile" label="Profile" icon={<User size={15} />} />
             </div>
 
             {/* Right side */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'end', gap: 6, flexShrink: 0 }}>
               <NotificationBell />
               <button onClick={toggle} className="gen-theme-toggle" title={isDark ? 'Light mode' : 'Dark mode'}
                 style={{ width: 32, height: 32, fontSize: 14 }}>

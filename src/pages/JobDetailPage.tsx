@@ -22,6 +22,7 @@ export default function JobDetailPage() {
   const [bidAmount, setBidAmount] = useState('');
   const [deliveryDays, setDeliveryDays] = useState('');
   const [coverLetter, setCoverLetter] = useState('');
+  const [proposalSubmitted, setProposalSubmitted] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -59,6 +60,7 @@ export default function JobDetailPage() {
       setSubmitting(false); return;
     }
     toast.success('Proposal submitted!');
+    setProposalSubmitted(true);
     // Notify the job's client
     try {
       if (job.client_id) {
@@ -115,17 +117,17 @@ export default function JobDetailPage() {
       </button>
 
       {/* Job Header */}
-      <div className="gen-card" style={{ padding: 28, marginBottom: 20 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
-          <div style={{ flex: 1 }}>
+      <div className="gen-card" style={{ padding: 20, marginBottom: 20 }}>
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+          <div className="w-full min-w-0">
             <h1 className="gen-heading" style={{ fontSize: 'clamp(1.3rem, 3vw, 1.8rem)' }}>{job.title} {job.is_edited && <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 400, fontStyle: 'italic' }}>(edited)</span>}</h1>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 14, color: 'var(--text-muted)', fontSize: 13 }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><DollarSign size={13} />{formatDual(job.budget_min, (job as any).budget_currency)} – {formatDual(job.budget_max, (job as any).budget_currency)} · {job.budget_type}</span>
-              {job.deadline && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Calendar size={13} />{new Date(job.deadline).toLocaleDateString()}</span>}
-              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Clock size={13} />Posted {new Date(job.created_at).toLocaleDateString()}</span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 12, color: 'var(--text-muted)', fontSize: 13 }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}><DollarSign size={13} className="flex-shrink-0" />{formatDual(job.budget_min, (job as any).budget_currency)} – {formatDual(job.budget_max, (job as any).budget_currency)} · {job.budget_type}</span>
+              {job.deadline && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Calendar size={13} />{new Date(job.deadline).toLocaleDateString()}</span>}
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Clock size={13} />Posted {new Date(job.created_at).toLocaleDateString()}</span>
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          <div className="flex items-center flex-wrap gap-2 flex-shrink-0">
             <span className={`gen-badge ${statusBadge(job.status)}`}>{job.status}</span>
             {(isOwner || profile?.role === 'admin') && (
               <>
@@ -135,7 +137,6 @@ export default function JobDetailPage() {
                   const { error } = await supabase.from('jobs').delete().eq('id', job.id);
                   if (error) { toast.error('Failed'); return; }
                   toast.success('Job deleted');
-                  // Notify freelancers
                   try {
                     const { data: fl } = await supabase.from('profiles').select('id').eq('role', 'freelancer');
                     if (fl?.length) await notifyUsers(fl.map((f) => f.id), 'Job Deleted', `${profile?.full_name} deleted: "${job.title}"`, 'job_deleted');
@@ -197,7 +198,7 @@ export default function JobDetailPage() {
       </div>
 
       {/* Freelancer: Submit Proposal */}
-      {isFreelancer && job.status === 'open' && !hasApplied && (
+      {isFreelancer && job.status === 'open' && !hasApplied && !proposalSubmitted && (
         <div className="gen-card" style={{ padding: 28, marginBottom: 20 }}>
           <h2 className="gen-heading" style={{ fontSize: 18, marginBottom: 20 }}>Submit a Proposal</h2>
           <form onSubmit={handleSubmitProposal} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -241,11 +242,15 @@ export default function JobDetailPage() {
         </div>
       )}
 
-      {isFreelancer && hasApplied && (
-        <div style={{ padding: '14px 20px', borderRadius: 12, background: 'var(--green-bg)', border: '1px solid var(--accent-dim)', color: 'var(--accent)', fontSize: 13, textAlign: 'center', marginBottom: 20 }}>
-          You have already submitted a proposal for this job.
+      {(isFreelancer && hasApplied) || proposalSubmitted ? (
+        <div className="gen-card" style={{ padding: 24, marginBottom: 20, textAlign: 'center', background: 'rgba(16,185,129,0.04)', border: '1px solid rgba(16,185,129,0.15)' }}>
+          <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+            <Check size={24} color="#10b981" />
+          </div>
+          <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>Proposal Submitted Successfully</div>
+          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>The client will review your proposal and get back to you soon.</div>
         </div>
-      )}
+      ) : null}
 
       {/* Client: View Proposals */}
       {isOwner && (

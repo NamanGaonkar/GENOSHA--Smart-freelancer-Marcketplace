@@ -167,7 +167,7 @@ export default function AdminPage() {
   ].filter((d) => d.value > 0);
 
   const now = new Date();
-  const filterFutureMonths = (entries: [string, number][]) => {
+  const filterFutureMonths = <T,>(entries: [string, T][]) => {
     return entries.filter(([key]) => {
       const d = new Date(key);
       return d <= now;
@@ -175,24 +175,24 @@ export default function AdminPage() {
   };
 
   const volumeOverTime = (() => {
-    const m: Record<string, number> = {};
-    contracts.forEach((c) => { const mo = new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); m[mo] = (m[mo] || 0) + (c.total_amount || 0); });
+    const m: Record<string, { amount: number; date: Date }> = {};
+    contracts.forEach((c) => { const d = new Date(c.created_at); const mo = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); if (!m[mo]) m[mo] = { amount: 0, date: d }; m[mo].amount += (c.total_amount || 0); });
     let cumulative = 0;
-    return filterFutureMonths(Object.entries(m)).slice(-8).map(([month, amount]) => { cumulative += amount; return { month, volume: Math.round(cumulative) }; });
+    return filterFutureMonths(Object.entries(m).sort((a, b) => a[1].date.getTime() - b[1].date.getTime())).slice(-8).map(([month, data]) => { cumulative += data.amount; return { month, volume: Math.round(cumulative) }; });
   })();
 
   const userGrowth = (() => {
-    const m: Record<string, number> = {};
-    users.forEach((u) => { const mo = new Date(u.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); m[mo] = (m[mo] || 0) + 1; });
+    const m: Record<string, { count: number; date: Date }> = {};
+    users.forEach((u) => { const d = new Date(u.created_at); const mo = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); if (!m[mo]) m[mo] = { count: 0, date: d }; m[mo].count += 1; });
     let cumulative = 0;
-    return filterFutureMonths(Object.entries(m)).slice(-8).map(([month, count]) => { cumulative += count; return { month, users: cumulative }; });
+    return filterFutureMonths(Object.entries(m).sort((a, b) => a[1].date.getTime() - b[1].date.getTime())).slice(-8).map(([month, data]) => { cumulative += data.count; return { month, users: cumulative }; });
   })();
 
   const monthlyJobs = (() => {
-    const m: Record<string, number> = {};
-    jobs.forEach((j) => { const mo = new Date(j.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); m[mo] = (m[mo] || 0) + 1; });
+    const m: Record<string, { count: number; date: Date }> = {};
+    jobs.forEach((j) => { const d = new Date(j.created_at); const mo = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); if (!m[mo]) m[mo] = { count: 0, date: d }; m[mo].count += 1; });
     let cumulative = 0;
-    return filterFutureMonths(Object.entries(m)).slice(-8).map(([month, count]) => { cumulative += count; return { month, total: cumulative }; });
+    return filterFutureMonths(Object.entries(m).sort((a, b) => a[1].date.getTime() - b[1].date.getTime())).slice(-8).map(([month, data]) => { cumulative += data.count; return { month, total: cumulative }; });
   })();
 
   const filteredUsers = users.filter((u) => search ? u.full_name?.toLowerCase().includes(search.toLowerCase()) || u.role?.includes(search.toLowerCase()) : true);

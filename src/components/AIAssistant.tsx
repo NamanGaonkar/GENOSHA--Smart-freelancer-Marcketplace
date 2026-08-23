@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sparkles, Loader2, Copy, Check } from 'lucide-react';
 import { trackAIUsage, getAIUsageToday } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -28,11 +28,11 @@ export default function AIAssistant({ mode, input, jobTitle, jobDescription, ski
   const [copied, setCopied] = useState(false);
   const [usedToday, setUsedToday] = useState(0);
 
-  useState(() => {
+  useEffect(() => {
     if (profile) {
       getAIUsageToday(profile.id).then(({ count }) => setUsedToday(count));
     }
-  });
+  }, [profile]);
 
   const runAI = async () => {
     if (isAIDisabled()) {

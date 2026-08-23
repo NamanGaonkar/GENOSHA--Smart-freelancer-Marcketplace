@@ -33,6 +33,7 @@ export default function ContractDetailPage() {
   const [revieweeName, setRevieweeName] = useState('');
   const [showDisputeForm, setShowDisputeForm] = useState(false);
   const [disputeReason, setDisputeReason] = useState('');
+  const [driveLink, setDriveLink] = useState('');
 
   useEffect(() => {
     async function load() {
@@ -73,9 +74,13 @@ export default function ContractDetailPage() {
     if (!contract || !submissionNotes.trim()) return;
     setActionLoading(true);
 
-    const { error } = await submitWork(contract.id, submissionNotes, submitFiles);
+    const allFiles = [...submitFiles];
+    if (driveLink.trim()) {
+      allFiles.push({ name: driveLink.trim(), url: driveLink.trim() });
+    }
+    const { error } = await submitWork(contract.id, submissionNotes, allFiles);
     if (error) { toast.error('Failed to submit'); setActionLoading(false); return; }
-    setContract((prev) => prev ? { ...prev, status: 'under_review', submission_notes: submissionNotes, submission_files: submitFiles } : prev);
+    setContract((prev) => prev ? { ...prev, status: 'under_review', submission_notes: submissionNotes, submission_files: allFiles } : prev);
     toast.success('Work submitted for client review!');
     setShowSubmitForm(false);
     setActionLoading(false);
@@ -293,6 +298,11 @@ export default function ContractDetailPage() {
             <div>
               <label className="gen-label">Deliverable Files</label>
               <FileDropzone bucket="deliverables" path={`deliverables/${contract.id}`} multiple maxSizeMB={25} onUpload={(url, name) => setSubmitFiles(prev => [...prev, { name, url }])} />
+            </div>
+            <div>
+              <label className="gen-label">Or paste a Drive / Figma / Repo Link</label>
+              <input type="url" value={driveLink} onChange={(e) => setDriveLink(e.target.value)}
+                placeholder="https://drive.google.com/..." className="gen-input" style={{ borderRadius: 12 }} />
             </div>
             <button onClick={handleSubmitWork} disabled={actionLoading || !submissionNotes.trim()} className="gen-btn-primary" style={{ alignSelf: 'flex-start' }}>
               {actionLoading ? 'Submitting...' : 'Submit for Review'}
