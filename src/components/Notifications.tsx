@@ -141,8 +141,8 @@ export function NotificationBell() {
         <>
           <div style={{ position: 'fixed', inset: 0, zIndex: 9998 }} onClick={() => setOpen(false)} />
           <div style={{
-            position: 'fixed', top: 56, right: 8, marginTop: 0,
-            width: 'min(360px, calc(100vw - 16px))', maxHeight: 420, overflowY: 'auto',
+            position: 'absolute', top: 'calc(100% + 6px)', right: 0,
+            width: 360, maxHeight: 420, overflowY: 'auto',
             background: 'var(--bg-card)', border: '1px solid var(--border)',
             borderRadius: 16, boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
             zIndex: 9999,
