@@ -386,7 +386,7 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr] gap-3 md:gap-4 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr] gap-3 md:gap-4 mb-4 mt-5">
           <div className="gen-card" style={{ overflow: 'hidden' }}>
             <div className="gen-card-header">
               <div className="gen-card-header-left">

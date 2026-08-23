@@ -69,7 +69,7 @@ export default function Navbar() {
             </div>
 
             {/* Right side */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
               <NotificationBell />
               <button onClick={toggle} className="gen-theme-toggle" title={isDark ? 'Light mode' : 'Dark mode'}
                 style={{ width: 32, height: 32, fontSize: 14 }}>
