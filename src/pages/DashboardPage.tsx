@@ -71,8 +71,9 @@ export default function DashboardPage() {
   const completedContracts = contracts.filter((c: any) => c.status === 'completed');
   const pendingDeposit = contracts.filter((c: any) => c.status === 'pending_deposit');
   const underReview = contracts.filter((c: any) => c.status === 'under_review');
-  const totalEarned = completedContracts.reduce((s: number, c: any) => s + (c.total_amount || 0), 0);
-  const freelancerCurrency = completedContracts[0]?.budget_currency || 'usd';
+  const USD_TO_INR = 83.5;
+  const toINR = (amt: number, cur?: string) => (cur === 'inr' ? amt : Math.round(amt * USD_TO_INR));
+  const totalEarned = completedContracts.reduce((s: number, c: any) => s + toINR(c.total_amount || 0, c.budget_currency), 0);
 
   const now = new Date();
   const filterFuture = <T,>(entries: [string, T][]) => {
@@ -106,7 +107,7 @@ export default function DashboardPage() {
         const d = new Date(c.created_at);
         const mo = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         if (!m[mo]) m[mo] = { amount: 0, date: d };
-        m[mo].amount += (c.total_amount || 0);
+        m[mo].amount += toINR(c.total_amount || 0, c.budget_currency);
       });
       let cumulative = 0;
       return filterFuture(Object.entries(m).sort((a, b) => a[1].date.getTime() - b[1].date.getTime())).slice(-8).map(([month, data]) => {
@@ -131,7 +132,7 @@ export default function DashboardPage() {
             { icon: <Briefcase size={16} />, label: 'Available Jobs', value: recentJobs.length },
             { icon: <FileText size={16} />, label: 'Active Contracts', value: activeContracts.length },
             { icon: <CheckCircle size={16} />, label: 'Completed', value: completedContracts.length },
-            { icon: <DollarSign size={16} />, label: 'Total Earned', value: formatDual(totalEarned, freelancerCurrency), accent: true },
+            { icon: <DollarSign size={16} />, label: 'Total Earned', value: formatDual(totalEarned, 'inr'), accent: true },
           ].map((s) => (
             <div key={s.label} className="gen-card min-w-0" style={{ position: 'relative', padding: '16px 14px', overflow: 'hidden', ...(s.accent ? { background: 'rgba(16,185,129,0.06)', borderColor: 'rgba(16,185,129,0.15)' } : {}) }}>
 
@@ -195,7 +196,7 @@ export default function DashboardPage() {
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" />
                     <XAxis dataKey="month" tick={{ fontSize: 10, fill: 'var(--chart-text)' }} axisLine={false} tickLine={false} />
                     <YAxis tick={{ fontSize: 10, fill: 'var(--chart-text)' }} axisLine={false} tickLine={false} width={50} />
-                    <Tooltip {...tooltipStyle} formatter={(v: any) => formatDual(Number(v), freelancerCurrency)} />
+                    <Tooltip {...tooltipStyle} formatter={(v: any) => formatDual(Number(v), 'inr')} />
                     <Area type="monotone" dataKey="earnings" stroke={GREEN} fill="url(#earnGrad)" strokeWidth={2.5} dot={{ r: 3, fill: GREEN, strokeWidth: 0 }} activeDot={{ r: 5, fill: GREEN_LIGHT }} />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -348,8 +349,7 @@ export default function DashboardPage() {
       { name: 'Cancelled', value: contracts.filter((c: any) => c.status === 'cancelled').length, color: RED },
     ].filter((d) => d.value > 0);
 
-    const totalSpent = completedContracts.reduce((s: number, c: any) => s + (c.total_amount || 0), 0);
-    const clientCurrency = completedContracts[0]?.budget_currency || 'usd';
+    const totalSpent = completedContracts.reduce((s: number, c: any) => s + toINR(c.total_amount || 0, c.budget_currency), 0);
 
     const spendingTrend = (() => {
       const m: Record<string, { amount: number; date: Date }> = {};
@@ -357,7 +357,7 @@ export default function DashboardPage() {
         const d = new Date(c.created_at);
         const mo = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         if (!m[mo]) m[mo] = { amount: 0, date: d };
-        m[mo].amount += (c.total_amount || 0);
+        m[mo].amount += toINR(c.total_amount || 0, c.budget_currency);
       });
       let cumulative = 0;
       return filterFuture(Object.entries(m).sort((a, b) => a[1].date.getTime() - b[1].date.getTime())).slice(-8).map(([month, data]) => {
@@ -380,7 +380,7 @@ export default function DashboardPage() {
             { icon: <Briefcase size={16} />, label: 'Total Jobs', value: jobs.length },
             { icon: <Briefcase size={16} />, label: 'Active Jobs', value: activeJobs.length },
             { icon: <FileText size={16} />, label: 'Contracts', value: activeContracts.length },
-            { icon: <DollarSign size={16} />, label: 'Total Spent', value: formatDual(totalSpent, clientCurrency), accent: true },
+            { icon: <DollarSign size={16} />, label: 'Total Spent', value: formatDual(totalSpent, 'inr'), accent: true },
           ].map((s) => (
             <div key={s.label} className="gen-card min-w-0" style={{ position: 'relative', padding: '16px 14px', overflow: 'hidden', ...(s.accent ? { background: 'rgba(16,185,129,0.06)', borderColor: 'rgba(16,185,129,0.15)' } : {}) }}>
 
@@ -406,7 +406,7 @@ export default function DashboardPage() {
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" />
                     <XAxis dataKey="month" tick={{ fontSize: 10, fill: 'var(--chart-text)' }} axisLine={false} tickLine={false} />
                     <YAxis tick={{ fontSize: 10, fill: 'var(--chart-text)' }} axisLine={false} tickLine={false} width={50} />
-                    <Tooltip {...tooltipStyle} formatter={(v: any) => formatDual(Number(v), clientCurrency)} />
+                    <Tooltip {...tooltipStyle} formatter={(v: any) => formatDual(Number(v), 'inr')} />
                     <Area type="monotone" dataKey="spending" stroke={GREEN} fill="url(#spendGrad)" strokeWidth={2.5} dot={{ r: 3, fill: GREEN, strokeWidth: 0 }} activeDot={{ r: 5, fill: GREEN_LIGHT }} />
                   </AreaChart>
                 </ResponsiveContainer>

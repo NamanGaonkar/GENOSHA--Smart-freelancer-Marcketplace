@@ -141,7 +141,13 @@ export default function AdminPage() {
 
   const clientCount = users.filter((u) => u.role === 'client').length;
   const freelancerCount = users.filter((u) => u.role === 'freelancer').length;
-  const totalVolume = contracts.reduce((s, c) => s + (c.total_amount || 0), 0);
+  // Normalize all amounts to INR before summing (contracts store amount in budget_currency)
+  const USD_TO_INR = 83.5;
+  const totalVolume = contracts.reduce((s, c) => {
+    const amt = c.total_amount || 0;
+    const cur = (c as any).budget_currency || 'usd';
+    return s + (cur === 'inr' ? amt : Math.round(amt * USD_TO_INR));
+  }, 0);
   const activeContracts = contracts.filter((c) => c.status === 'active').length;
   const completedContracts = contracts.filter((c) => c.status === 'completed').length;
 
@@ -176,7 +182,15 @@ export default function AdminPage() {
 
   const volumeOverTime = (() => {
     const m: Record<string, { amount: number; date: Date }> = {};
-    contracts.forEach((c) => { const d = new Date(c.created_at); const mo = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); if (!m[mo]) m[mo] = { amount: 0, date: d }; m[mo].amount += (c.total_amount || 0); });
+    contracts.forEach((c) => {
+      const d = new Date(c.created_at);
+      const mo = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const amt = c.total_amount || 0;
+      const cur = (c as any).budget_currency || 'usd';
+      const amtINR = cur === 'inr' ? amt : Math.round(amt * USD_TO_INR);
+      if (!m[mo]) m[mo] = { amount: 0, date: d };
+      m[mo].amount += amtINR;
+    });
     let cumulative = 0;
     return filterFutureMonths(Object.entries(m).sort((a, b) => a[1].date.getTime() - b[1].date.getTime())).slice(-8).map(([month, data]) => { cumulative += data.amount; return { month, volume: Math.round(cumulative) }; });
   })();
@@ -233,7 +247,7 @@ export default function AdminPage() {
               { icon: <Users size={16} />, label: 'Total Users', value: users.length },
               { icon: <Briefcase size={16} />, label: 'Total Jobs', value: jobs.length },
               { icon: <TrendingUp size={16} />, label: 'Active Contracts', value: activeContracts },
-              { icon: <DollarSign size={16} />, label: 'Platform Volume', value: `${formatDual(totalVolume, 'usd')}`, accent: true },
+              { icon: <DollarSign size={16} />, label: 'Platform Volume', value: formatDual(totalVolume, 'inr'), accent: true },
             ].map((s) => (
               <div key={s.label} className="gen-card min-w-0" style={{ padding: '18px 16px', ...(s.accent ? { background: 'rgba(16,185,129,0.06)', borderColor: 'rgba(16,185,129,0.15)' } : {}) }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: s.accent ? GREEN : 'var(--text-muted)', marginBottom: 8, fontSize: 12 }}>{s.icon}<span>{s.label}</span></div>
@@ -305,7 +319,7 @@ export default function AdminPage() {
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" />
                     <XAxis dataKey="month" tick={{ fontSize: 10, fill: 'var(--chart-text)' }} axisLine={false} tickLine={false} />
                     <YAxis tick={{ fontSize: 10, fill: 'var(--chart-text)' }} axisLine={false} tickLine={false} width={50} />
-                    <Tooltip {...tooltipStyle} formatter={(v: any) => formatDual(Number(v), 'usd')} />
+                    <Tooltip {...tooltipStyle} formatter={(v: any) => formatDual(Number(v), 'inr')} />
                     <Area type="monotone" dataKey="volume" stroke={GREEN} fill="url(#volGrad)" strokeWidth={2.5} dot={{ r: 3, fill: GREEN, strokeWidth: 0 }} activeDot={{ r: 5, fill: GREEN_LIGHT }} animationDuration={1400} />
                   </AreaChart>
                 </ResponsiveContainer>
