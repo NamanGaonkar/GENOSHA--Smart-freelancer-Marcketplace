@@ -242,7 +242,7 @@ export default function AdminPage() {
       {tab === 'overview' && (
         <>
           {/* Row 0: 4 Stats — full width, even columns */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-5">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8">
             {[
               { icon: <Users size={16} />, label: 'Total Users', value: users.length },
               { icon: <Briefcase size={16} />, label: 'Total Jobs', value: jobs.length },
@@ -257,7 +257,7 @@ export default function AdminPage() {
           </div>
 
           {/* Row 1: User Roles + Contract Status — 2-col equal */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {roleData.length > 0 && (
               <div className="gen-card min-w-0" style={{ padding: 20 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 12 }}>User Roles Distribution</div>
@@ -302,7 +302,7 @@ export default function AdminPage() {
           </div>
 
           {/* Row 2: Platform Volume Trend + User Growth — 2-col equal */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {volumeOverTime.length > 0 && (
               <div className="gen-card min-w-0" style={{ padding: 20 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -351,7 +351,7 @@ export default function AdminPage() {
           </div>
 
           {/* Row 3: Job Status + Jobs Over Time — 2-col equal */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
             {jobStatusData.length > 0 && (
               <div className="gen-card min-w-0" style={{ padding: 20 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 12 }}>Job Status Distribution</div>
