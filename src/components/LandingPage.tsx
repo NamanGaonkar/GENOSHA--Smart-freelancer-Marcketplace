@@ -87,7 +87,9 @@ function HeroSection() {
         style={{ padding: '28px 36px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <img src="/logo.png" alt="GENOSHA" style={{ height: 36, width: 'auto', objectFit: 'contain' }} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 4, borderRadius: 10, background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.2)' }}>
+            <img src="/logo.png" alt="GENOSHA" style={{ height: 28, width: 28, objectFit: 'contain', display: 'block' }} />
+          </div>
           <span style={{ fontFamily: "'YDYoonche L', 'YDYoonche M', sans-serif", fontSize: 20, fontWeight: 300, color: '#fff', letterSpacing: '-0.01em' }}>GENOSHA</span>
         </div>
 
@@ -377,8 +379,8 @@ function About() {
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(16,185,129,0.2)'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; }}
             >
-              <div style={{ marginBottom: 14 }}>
-                <img src="/logo.png" alt="GENOSHA" style={{ height: 20, width: 'auto', objectFit: 'contain', opacity: 0.7 }} />
+              <div style={{ marginBottom: 14, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 4, borderRadius: 8, background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.15)' }}>
+                <img src="/logo.png" alt="GENOSHA" style={{ height: 16, width: 16, objectFit: 'contain', display: 'block' }} />
               </div>
               <h4 style={{ fontSize: 16, fontWeight: 300, color: '#fff', marginBottom: 12, fontFamily: "'YDYoonche L', 'YDYoonche M', sans-serif", letterSpacing: '-0.01em' }}>{card.title}</h4>
               <p style={{ fontSize: 12.5, color: '#555', lineHeight: 1.75 }}>{card.desc}</p>
@@ -494,7 +496,7 @@ function Footer() {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <img src="/logo.png" alt="GENOSHA" style={{ height: 18, width: 'auto', objectFit: 'contain' }} />
+            <img src="/logo.png" alt="GENOSHA" style={{ height: 16, width: 16, objectFit: 'contain', display: 'block' }} />
             <span style={{ fontSize: 11, color: '#444', fontFamily: "'Space Mono', monospace" }}>
               &copy; {year} GENOSHA. All rights reserved.
             </span>

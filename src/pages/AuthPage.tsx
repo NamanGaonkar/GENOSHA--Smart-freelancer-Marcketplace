@@ -94,7 +94,9 @@ export default function AuthPage() {
 
       {/* Logo */}
       <Link to="/" style={{ position: 'absolute', top: 28, left: 36, zIndex: 10, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <img src="/logo.png" alt="GENOSHA" style={{ height: 36, width: 'auto', objectFit: 'contain' }} />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 4, borderRadius: 10, background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.25)' }}>
+          <img src="/logo.png" alt="GENOSHA" style={{ height: 28, width: 28, objectFit: 'contain', display: 'block' }} />
+        </div>
         <span style={{ fontFamily: "'YDYoonche L', 'YDYoonche M', sans-serif", fontSize: 20, fontWeight: 300, color: '#fff', letterSpacing: '-0.01em' }}>GENOSHA</span>
       </Link>
 

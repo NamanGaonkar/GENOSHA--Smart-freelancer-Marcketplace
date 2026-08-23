@@ -57,9 +57,11 @@ export default function Navbar() {
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 52 }}>
             {/* Logo */}
-            <Link to={profile ? '/dashboard' : '/'} style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', flexShrink: 0 }}>
-              <img src="/logo.png" alt="GENOSHA" style={{ height: 28, width: 'auto', objectFit: 'contain' }} />
-              <span style={{ fontFamily: "'YDYoonche L', 'YDYoonche M', sans-serif", fontSize: 16, fontWeight: 300, color: 'var(--text)', letterSpacing: '-0.01em' }}>GENOSHA</span>
+            <Link to={profile ? '/dashboard' : '/'} style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flexShrink: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 4, borderRadius: 10, background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)' }}>
+                <img src="/logo.png" alt="GENOSHA" style={{ height: 24, width: 24, objectFit: 'contain', display: 'block' }} />
+              </div>
+              <span style={{ fontFamily: "'YDYoonche L', 'YDYoonche M', sans-serif", fontSize: 17, fontWeight: 400, color: 'var(--text)', letterSpacing: '-0.01em' }}>GENOSHA</span>
             </Link>
 
             {/* Desktop nav links */}
