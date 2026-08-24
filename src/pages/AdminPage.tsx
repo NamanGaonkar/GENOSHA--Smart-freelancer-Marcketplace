@@ -7,7 +7,7 @@ import { getReviewsForUser } from '../lib/api';
 import {
   Users, Briefcase, Shield, Search, Trash2, TrendingUp, DollarSign,
   ChevronDown, ChevronUp, Eye, Ban, CheckCircle, Edit3, X, ExternalLink,
-  MapPin, Globe, Clock, Mail, Calendar, Star, Award,
+  MapPin, Globe, Clock, Calendar, Star, Award,
 } from 'lucide-react';
 import {
   XAxis, YAxis, Tooltip, ResponsiveContainer,
