@@ -139,14 +139,36 @@ export function NotificationBell() {
 
       {open && (
         <>
-          <div style={{ position: 'fixed', inset: 0, zIndex: 9998 }} onClick={() => setOpen(false)} />
-          <div style={{
-            position: 'absolute', top: 'calc(100% + 6px)', right: 0,
-            width: 360, maxHeight: 420, overflowY: 'auto',
-            background: 'var(--bg-card)', border: '1px solid var(--border)',
-            borderRadius: 16, boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
-            zIndex: 9999,
-          }}>
+          {/* Mobile backdrop — tap outside to dismiss */}
+          <div
+            className="sm:hidden"
+            style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(2px)' }}
+            onClick={() => setOpen(false)}
+          />
+          {/* Desktop backdrop — transparent, still needed for click-outside */}
+          <div
+            className="hidden sm:block"
+            style={{ position: 'fixed', inset: 0, zIndex: 9998 }}
+            onClick={() => setOpen(false)}
+          />
+          {/* Dropdown Panel */}
+          <div
+            className="noti-dropdown"
+            style={{
+              position: 'fixed',
+              // Mobile: centered within viewport with safe margins
+              top: 52,
+              left: 12,
+              right: 12,
+              maxHeight: 'calc(100vh - 72px)',
+              overflowY: 'auto',
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border)',
+              borderRadius: 16,
+              boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
+              zIndex: 9999,
+            }}
+          >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>
               <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>Notifications</span>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -176,9 +198,9 @@ export function NotificationBell() {
                 >
                   <div style={{ flexShrink: 0, marginTop: 2 }}>{iconFor(n.type)}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 2 }}>{n.title}</div>
-                    <div className="gen-break-words" style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5 }}>{n.body}</div>
-                    <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>{new Date(n.created_at).toLocaleString()}</div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{n.title}</div>
+                    <div className="gen-break-words" style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5, wordBreak: 'break-word', overflowWrap: 'break-word' }}>{n.body}</div>
+                    <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4, whiteSpace: 'nowrap' }}>{new Date(n.created_at).toLocaleString()}</div>
                   </div>
                   <button
                     onClick={(e) => { e.stopPropagation(); clearNotification(n.id); }}
@@ -190,6 +212,21 @@ export function NotificationBell() {
           </div>
         </>
       )}
+
+      {/* Responsive override: on sm+ screens, use absolute positioning anchored to bell */}
+      <style>{`
+        @media (min-width: 640px) {
+          .noti-dropdown {
+            position: absolute !important;
+            top: calc(100% + 6px) !important;
+            left: auto !important;
+            right: 0 !important;
+            width: 360px !important;
+            max-width: 360px !important;
+            max-height: 420px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
