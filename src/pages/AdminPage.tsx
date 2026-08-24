@@ -423,7 +423,7 @@ export default function AdminPage() {
                 onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(16,185,129,0.3)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.borderColor = ''; }}>
                 <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  {u.photo_url ? <img src={u.photo_url} alt="" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }} /> : <span style={{ color: GREEN, fontSize: 14, fontWeight: 600 }}>{u.full_name?.charAt(0) || 'U'}</span>}
+                  {(u.avatar_url || u.photo_url) ? <img src={u.avatar_url || u.photo_url} alt="" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }} /> : <span style={{ color: GREEN, fontSize: 14, fontWeight: 600 }}>{u.full_name?.charAt(0) || 'U'}</span>}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div className="gen-truncate gen-break-words" style={{ color: 'var(--text)', fontSize: 14, fontWeight: 500 }}>{u.full_name}</div>
@@ -525,15 +525,14 @@ export default function AdminPage() {
             </button>
             <div style={{ padding: '28px 28px 0', display: 'flex', alignItems: 'center', gap: 18 }}>
               <div style={{ width: 64, height: 64, borderRadius: '50%', flexShrink: 0, background: 'rgba(16,185,129,0.1)', border: '2.5px solid rgba(16,185,129,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                {selectedUser.photo_url ? <img src={selectedUser.photo_url} alt="" style={{ width: 60, height: 60, borderRadius: '50%', objectFit: 'cover' }} /> : <span style={{ color: GREEN, fontSize: 24, fontWeight: 700 }}>{selectedUser.full_name?.charAt(0) || 'U'}</span>}
+                {(selectedUser.avatar_url || selectedUser.photo_url) ? <img src={selectedUser.avatar_url || selectedUser.photo_url} alt="" style={{ width: 60, height: 60, borderRadius: '50%', objectFit: 'cover' }} /> : <span style={{ color: GREEN, fontSize: 24, fontWeight: 700 }}>{selectedUser.full_name?.charAt(0) || 'U'}</span>}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                   <h3 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text)' }}>{selectedUser.full_name}</h3>
                   <span className={`gen-badge ${selectedUser.role === 'admin' ? 'gen-badge-green' : selectedUser.role === 'client' ? 'gen-badge-cyan' : 'gen-badge-amber'}`} style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'inline-flex', alignItems: 'center', gap: 4 }}>{selectedUser.role === 'admin' && <Shield size={10} />}{selectedUser.role}</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}><Mail size={12} color="var(--text-muted)" /><span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{selectedUser.email}</span><CheckCircle size={12} color={GREEN} style={{ opacity: 0.7 }} /></div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}><Calendar size={11} color="var(--text-muted)" /><span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Joined {new Date(selectedUser.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span></div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}><Calendar size={11} color="var(--text-muted)" /><span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Joined {new Date(selectedUser.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span></div>
               </div>
             </div>
             <div style={{ height: 1, background: 'var(--border)', margin: '20px 28px' }} />
@@ -553,7 +552,7 @@ export default function AdminPage() {
                 <InfoCard label="Availability" value={selectedUser.availability} icon={<Clock size={12} />} />
               </>)}
               <InfoCard label="Location" value={selectedUser.location} icon={<MapPin size={12} />} />
-              <InfoCard label="Languages" value={selectedUser.languages?.length ? selectedUser.languages.join(', ') : null} icon={<Globe size={12} />} />
+              <InfoCard label="Languages" value={Array.isArray(selectedUser.languages) ? selectedUser.languages.join(', ') : (selectedUser.languages || null)} icon={<Globe size={12} />} />
             </div>
             {selectedUser.skills?.length > 0 && (
               <div style={{ padding: '16px 28px 0' }}>
