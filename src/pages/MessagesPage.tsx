@@ -113,6 +113,14 @@ export default function MessagesPage() {
           setIsRinging(false);
         }
       })
+      .on('broadcast', { event: 'call_ended' }, (payload) => {
+        const d = payload.payload as any;
+        if (d.user_id !== profile.id) {
+          setActiveCall(null);
+          setIsRinging(false);
+          toast('Call ended by other party');
+        }
+      })
       .subscribe();
     return () => { ch.unsubscribe(); };
   }, [profile?.id]);
@@ -151,7 +159,15 @@ export default function MessagesPage() {
       setIncomingCall(null);
     }
   }, [incomingCall, profile]);
-  const endCall = useCallback(() => { setActiveCall(null); setIsRinging(false); }, []);
+  const endCall = useCallback(async () => {
+    // Notify the other party that call ended
+    if (selectedRoom && profile) {
+      const ch = supabase.channel(`video-call-${selectedRoom}`);
+      await ch.send({ type: 'broadcast', event: 'call_ended', payload: { user_id: profile.id } });
+    }
+    setActiveCall(null);
+    setIsRinging(false);
+  }, [selectedRoom, profile]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

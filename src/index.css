@@ -406,6 +406,18 @@ input[type='file'].gen-input::file-selector-button {
   /* Card header text wraps */
   .gen-card-header { padding: 12px 14px; }
   .gen-card-header span { font-size: 12px !important; }
+
+  /* Video call modal - mobile */
+  .video-call-container {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+  }
 }
 
 @media (max-width: 480px) {

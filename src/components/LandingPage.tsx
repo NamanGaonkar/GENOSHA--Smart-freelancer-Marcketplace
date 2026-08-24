@@ -7,6 +7,7 @@ import {
   Layers,
   Cpu,
   ArrowRight,
+  Video,
 } from 'lucide-react';
 
 
@@ -188,6 +189,11 @@ const FEATURES = [
     Icon: Cpu,
     title: 'AI-Assisted Scoping & Proposals',
     desc: 'Streamlined brief generation for clients and rapid proposal formatting for freelancers.',
+  },
+  {
+    Icon: Video,
+    title: 'HD Video Calls with Jitsi Meet',
+    desc: 'Built-in video conferencing powered by Jitsi Meet. Screen sharing, real-time collaboration, zero setup required.',
   },
 ];
 

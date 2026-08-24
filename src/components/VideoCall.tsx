@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Video, Phone, PhoneOff, Minimize2, Maximize2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import toast from 'react-hot-toast';
 
 interface VideoCallProps {
   roomId: string;
@@ -33,19 +34,26 @@ export function VideoCallModal({ roomId, otherUserName, otherUserAvatar, onClose
 
   if (!profile) return null;
 
+  const handleEndCall = () => {
+    toast.success('Call ended');
+    onClose();
+  };
+
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 9999,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      display: 'flex', alignItems: minimized ? 'flex-end' : 'center',
+      justifyContent: minimized ? 'flex-end' : 'center',
       background: minimized ? 'transparent' : 'rgba(0,0,0,0.7)',
       backdropFilter: minimized ? 'none' : 'blur(4px)',
+      padding: minimized ? '16px' : 0,
     }}>
-      <div style={{
-        width: minimized ? 320 : '90vw',
-        maxWidth: minimized ? 320 : 900,
-        height: minimized ? 200 : '80vh',
-        maxHeight: minimized ? 200 : 700,
-        borderRadius: minimized ? 16 : 20,
+      <div className="video-call-container" style={{
+        width: minimized ? 280 : '92vw',
+        maxWidth: minimized ? 280 : 900,
+        height: minimized ? 180 : '75vh',
+        maxHeight: minimized ? 180 : 700,
+        borderRadius: minimized ? 16 : 16,
         overflow: 'hidden',
         background: '#000',
         boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
@@ -55,39 +63,40 @@ export function VideoCallModal({ roomId, otherUserName, otherUserAvatar, onClose
       }}>
         {/* Call Header */}
         <div style={{
-          padding: '8px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '6px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           background: 'rgba(16,185,129,0.1)', borderBottom: '1px solid rgba(255,255,255,0.06)',
+          flexShrink: 0,
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Video size={14} color="#10b981" />
-            <span style={{ fontSize: 12, fontWeight: 500, color: '#fff' }}>
-              Call with {otherUserName}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+            <Video size={12} color="#10b981" style={{ flexShrink: 0 }} />
+            <span style={{ fontSize: 11, fontWeight: 500, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {otherUserName}
             </span>
           </div>
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
             <button onClick={() => setMinimized(!minimized)} style={{
               background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 6,
-              cursor: 'pointer', padding: 4, display: 'flex', color: '#fff',
+              cursor: 'pointer', padding: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
             }}>
-              {minimized ? <Maximize2 size={12} /> : <Minimize2 size={12} />}
+              {minimized ? <Maximize2 size={11} /> : <Minimize2 size={11} />}
             </button>
-            <button onClick={onClose} style={{
-              background: 'rgba(239,68,68,0.2)', border: 'none', borderRadius: 6,
-              cursor: 'pointer', padding: 4, display: 'flex', color: '#ef4444',
+            <button onClick={handleEndCall} style={{
+              background: '#ef4444', border: 'none', borderRadius: 6,
+              cursor: 'pointer', padding: '5px 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', gap: 4,
             }}>
-              <PhoneOff size={12} />
+              <PhoneOff size={11} /><span style={{ fontSize: 10, fontWeight: 600 }}>End</span>
             </button>
           </div>
         </div>
 
-        {/* Jitsi Iframe via external API (most reliable) */}
+        {/* Jitsi Iframe */}
         {!minimized && (
           <div ref={containerRef} style={{ flex: 1, minHeight: 0 }}>
             {jitsiError ? (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#fff', flexDirection: 'column', gap: 10 }}>
                 <Video size={32} color="#ef4444" />
                 <p style={{ fontSize: 14 }}>Failed to load video call</p>
-                <button onClick={onClose} style={{ padding: '8px 20px', borderRadius: 8, background: '#ef4444', color: '#fff', border: 'none', cursor: 'pointer' }}>Close</button>
+                <button onClick={handleEndCall} style={{ padding: '8px 20px', borderRadius: 8, background: '#ef4444', color: '#fff', border: 'none', cursor: 'pointer' }}>Close</button>
               </div>
             ) : (
               <iframe
@@ -104,18 +113,18 @@ export function VideoCallModal({ roomId, otherUserName, otherUserAvatar, onClose
         {minimized && (
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
             <div style={{
-              width: 40, height: 40, borderRadius: '50%', overflow: 'hidden',
-              border: '2px solid #10b981', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: 36, height: 36, borderRadius: '50%', overflow: 'hidden',
+              border: '2px solid #10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
             }}>
               {otherUserAvatar ? (
                 <img src={otherUserAvatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
-                <span style={{ color: '#10b981', fontSize: 16, fontWeight: 600 }}>{otherUserName.charAt(0)}</span>
+                <span style={{ color: '#10b981', fontSize: 14, fontWeight: 600 }}>{otherUserName.charAt(0)}</span>
               )}
             </div>
-            <div>
-              <div style={{ color: '#fff', fontSize: 13, fontWeight: 500 }}>{otherUserName}</div>
-              <div style={{ color: '#10b981', fontSize: 10 }}>Call in progress...</div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ color: '#fff', fontSize: 12, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{otherUserName}</div>
+              <div style={{ color: '#10b981', fontSize: 9 }}>Call in progress...</div>
             </div>
           </div>
         )}
@@ -140,9 +149,10 @@ export function IncomingCallModal({ callerName, callerAvatar, onAccept, onDeclin
       background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)',
     }}>
       <div style={{
-        width: 320, padding: 32, borderRadius: 24,
+        width: '85vw', maxWidth: 320, padding: '28px 24px', borderRadius: 24,
         background: 'var(--bg-card)', border: '1px solid var(--border)',
         textAlign: 'center', animation: 'gen-zoomIn 0.3s ease-out',
+        margin: '0 16px',
       }}>
         <div style={{
           width: 72, height: 72, borderRadius: '50%', margin: '0 auto 16px',
