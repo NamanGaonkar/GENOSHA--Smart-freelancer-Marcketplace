@@ -5,8 +5,7 @@ import { supabase } from '../lib/supabase';
 import { getChatRooms, getMessages, sendMessage, markMessagesAsRead, uploadFile } from '../lib/api';
 import type { MessageWithSender } from '../types/database';
 import { Send, MessageSquare, ArrowLeft, Paperclip, File, X, Video } from 'lucide-react';
-import { VideoCallModal, IncomingCallModal } from '../components/VideoCall';
-import toast from 'react-hot-toast';
+
 
 export default function MessagesPage() {
   const { profile } = useAuth();
@@ -24,10 +23,7 @@ export default function MessagesPage() {
   const mountedRef = useRef(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Video call state — declared BEFORE any early return
-  const [activeCall, setActiveCall] = useState<string | null>(null);
-  const [isRinging, setIsRinging] = useState(false);
-  const [incomingCall, setIncomingCall] = useState<{ roomName: string; callerName: string; callerAvatar?: string; callerId: string } | null>(null);
+
 
   const loadRooms = useCallback(async () => {
     if (!profile) return;
@@ -91,84 +87,9 @@ export default function MessagesPage() {
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
-  // Video call realtime channel — use user-level channel so recipient gets it regardless of which room they're viewing
-  useEffect(() => {
-    if (!profile) return;
-    const ch = supabase.channel(`vc-user-${profile.id}`)
-      .on('broadcast', { event: 'incoming_call' }, (payload) => {
-        const d = payload.payload as any;
-        if (d.caller_id !== profile.id) {
-          setIncomingCall({ roomName: d.room_name, callerName: d.caller_name, callerAvatar: d.caller_avatar, callerId: d.caller_id });
-        }
-      })
-      .on('broadcast', { event: 'call_accepted' }, (payload) => {
-        const d = payload.payload as any;
-        // The person who was calling now joins the call
-        setActiveCall(d.room_name);
-        setIsRinging(false);
-      })
-      .on('broadcast', { event: 'call_declined' }, (payload) => {
-        const d = payload.payload as any;
-        if (d.caller_id === profile.id) {
-          setActiveCall(null);
-          setIsRinging(false);
-        }
-      })
-      .on('broadcast', { event: 'call_ended' }, (payload) => {
-        const d = payload.payload as any;
-        if (d.user_id !== profile.id) {
-          setActiveCall(null);
-          setIsRinging(false);
-          toast('Call ended by other party');
-        }
-      })
-      .subscribe();
-    return () => { ch.unsubscribe(); };
-  }, [profile?.id]);
 
-  const startCall = useCallback(async (_name: string, _avatar?: string) => {
-    if (!selectedRoom || !profile) return;
-    const room = `genosha-call-${selectedRoom}-${Date.now().toString(36)}`;
-    // Don't open Jitsi yet — show ringing state, wait for call_accepted
-    setIsRinging(true);
-    // Get the other user's ID to send to their user-level channel
-    const roomInfo = rooms.find((r: any) => r.room?.id === selectedRoom);
-    const otherUserId = roomInfo?.other_user?.id;
-    if (otherUserId) {
-      const ch = supabase.channel(`vc-user-${otherUserId}`);
-      await ch.send({ type: 'broadcast', event: 'incoming_call', payload: { room_name: room, caller_id: profile.id, caller_name: profile.full_name || 'User', caller_avatar: (profile as any).avatar_url } });
-    }
-    // Store room name so accept can reference it
-    (window as any).__genosha_call_room = room;
-  }, [selectedRoom, profile, rooms]);
 
-  const acceptCall = useCallback(async () => {
-    if (incomingCall && profile) {
-      setActiveCall(incomingCall.roomName);
-      setIncomingCall(null);
-      // Notify the caller that call was accepted
-      const ch = supabase.channel(`vc-user-${incomingCall.callerId}`);
-      await ch.send({ type: 'broadcast', event: 'call_accepted', payload: { room_name: incomingCall.roomName, acceptor_id: profile.id } });
-    }
-  }, [incomingCall, profile]);
 
-  const declineCall = useCallback(async () => {
-    if (incomingCall && profile) {
-      // Send decline to the CALLER's channel (not own)
-      const ch = supabase.channel(`vc-user-${incomingCall.callerId}`);
-      await ch.send({ type: 'broadcast', event: 'call_declined', payload: { caller_id: incomingCall.callerId } });
-      setIncomingCall(null);
-    }
-  }, [incomingCall, profile]);
-  const endCall = useCallback(async () => {
-    // Notify the other party that call ended
-    if (selectedRoom && profile) {
-      const ch = supabase.channel(`video-call-${selectedRoom}`);
-      await ch.send({ type: 'broadcast', event: 'call_ended', payload: { user_id: profile.id } });
-    }
-    setActiveCall(null);
-    setIsRinging(false);
-  }, [selectedRoom, profile]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -340,23 +261,19 @@ export default function MessagesPage() {
                   {jobTitle ? `Re: ${jobTitle}` : 'Direct message'}{otherProfile?.role ? ` · ${otherProfile.role}` : ''}
                 </div>
               </div>
-              {!chatDisabled && !isRinging && !activeCall && (
-                <button onClick={() => startCall(otherProfile?.full_name || 'User', otherProfile?.avatar_url)} style={{
+              {!chatDisabled && (
+                <button onClick={() => {
+                  const peer = otherProfile;
+                  if (!peer) return;
+                  window.dispatchEvent(new CustomEvent('genosha:start-meet', { detail: { peerName: peer.full_name || 'User', peerAvatar: peer.avatar_url, peerId: peer.id } }));
+                }} style={{
                   width: 34, height: 34, borderRadius: 8, border: '1px solid rgba(16,185,129,0.2)',
                   background: 'rgba(16,185,129,0.06)', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: '#10b981', transition: 'all 0.15s', flexShrink: 0,
-                }} title="Start video call">
+                }} title="Start meet">
                   <Video size={16} />
                 </button>
-              )}
-              {isRinging && !activeCall && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontSize: 11, color: '#f59e0b', fontWeight: 500, animation: 'pulse 1.5s ease-in-out infinite' }}>Calling...</span>
-                  <button onClick={endCall} style={{ width: 34, height: 34, borderRadius: 8, border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.1)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444', transition: 'all 0.15s', flexShrink: 0 }} title="Cancel call">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.68 13.31a16 16 0 003.41 2.6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 004.73.89 2 2 0 012 2v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
-                  </button>
-                </div>
               )}
             </div>
 
@@ -488,25 +405,7 @@ export default function MessagesPage() {
         )}
       </div>
 
-      {/* Active Video Call */}
-      {activeCall && (
-        <VideoCallModal
-          roomId={activeCall}
-          otherUserName={otherProfile?.full_name || 'User'}
-          otherUserAvatar={otherProfile?.avatar_url}
-          onClose={endCall}
-        />
-      )}
 
-      {/* Incoming Call */}
-      {incomingCall && (
-        <IncomingCallModal
-          callerName={incomingCall.callerName}
-          callerAvatar={incomingCall.callerAvatar}
-          onAccept={acceptCall}
-          onDecline={declineCall}
-        />
-      )}
     </div>
   );
 }

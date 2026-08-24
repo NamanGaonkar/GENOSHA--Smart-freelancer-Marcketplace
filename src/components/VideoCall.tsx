@@ -14,30 +14,23 @@ interface VideoCallProps {
 export function VideoCallModal({ roomId, otherUserName, otherUserAvatar, onClose }: VideoCallProps) {
   const { profile } = useAuth();
   const [minimized, setMinimized] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [jitsiError, setJitsiError] = useState(false);
-
-  useEffect(() => {
-    let mounted = true;
-    async function loadJitsi() {
-      try {
-        await import('@jitsi/react-sdk');
-        if (!mounted) return;
-      } catch (err) {
-        console.error('Failed to load Jitsi:', err);
-        if (mounted) setJitsiError(true);
-      }
-    }
-    loadJitsi();
-    return () => { mounted = false; };
-  }, []);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   if (!profile) return null;
 
   const handleEndCall = () => {
-    toast.success('Call ended');
+    // Tell Jitsi to hang up via postMessage before closing
+    try {
+      iframeRef.current?.contentWindow?.postMessage(
+        JSON.stringify({ type: 'hangup' }),
+        'https://meet.jit.si'
+      );
+    } catch (_) { /* ignore cross-origin */ }
+    toast.success('Meet ended');
     onClose();
   };
+
+  const jitsiUrl = `https://meet.jit.si/${roomId}#config.toolbarButtons=%5B%22microphone%22%2C%22camera%22%2C%22desktop%22%2C%22fullscreen%22%2C%22hangup%22%2C%22tileview%22%5D&config.startWithAudioMuted=false&config.startWithVideoMuted=false&config.disableDeepLinking=true&config.externalConnectUrl=null&config.enableExternalConnection=false&config.p2p.enabled=true&config.analytics.disabled=true&userInfo.displayName=${encodeURIComponent(profile.full_name || 'User')}`;
 
   return (
     <div style={{
@@ -53,7 +46,7 @@ export function VideoCallModal({ roomId, otherUserName, otherUserAvatar, onClose
         maxWidth: minimized ? 280 : 900,
         height: minimized ? 180 : '75vh',
         maxHeight: minimized ? 180 : 700,
-        borderRadius: minimized ? 16 : 16,
+        borderRadius: 16,
         overflow: 'hidden',
         background: '#000',
         boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
@@ -61,7 +54,7 @@ export function VideoCallModal({ roomId, otherUserName, otherUserAvatar, onClose
         transition: 'all 0.3s ease',
         display: 'flex', flexDirection: 'column',
       }}>
-        {/* Call Header */}
+        {/* Header */}
         <div style={{
           padding: '6px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           background: 'rgba(16,185,129,0.1)', borderBottom: '1px solid rgba(255,255,255,0.06)',
@@ -70,7 +63,7 @@ export function VideoCallModal({ roomId, otherUserName, otherUserAvatar, onClose
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
             <Video size={12} color="#10b981" style={{ flexShrink: 0 }} />
             <span style={{ fontSize: 11, fontWeight: 500, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {otherUserName}
+              Meet with {otherUserName}
             </span>
           </div>
           <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
@@ -89,25 +82,19 @@ export function VideoCallModal({ roomId, otherUserName, otherUserAvatar, onClose
           </div>
         </div>
 
-        {/* Jitsi Iframe */}
-        {!minimized && (
-          <div ref={containerRef} style={{ flex: 1, minHeight: 0 }}>
-            {jitsiError ? (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#fff', flexDirection: 'column', gap: 10 }}>
-                <Video size={32} color="#ef4444" />
-                <p style={{ fontSize: 14 }}>Failed to load video call</p>
-                <button onClick={handleEndCall} style={{ padding: '8px 20px', borderRadius: 8, background: '#ef4444', color: '#fff', border: 'none', cursor: 'pointer' }}>Close</button>
-              </div>
-            ) : (
-              <iframe
-                src={`https://meet.jit.si/${roomId}#config.toolbarButtons=%5B%22microphone%22%2C%22camera%22%2C%22desktop%22%2C%22fullscreen%22%2C%22hangup%22%2C%22tileview%22%5D&config.startWithAudioMuted=false&config.startWithVideoMuted=false&config.disableDeepLinking=true&userInfo.displayName=${encodeURIComponent(profile.full_name || 'User')}`}
-                style={{ width: '100%', height: '100%', border: 'none' }}
-                allow="camera; microphone; fullscreen; display-capture; screen-sharing"
-                title="Video Call"
-              />
-            )}
-          </div>
-        )}
+        {/* Jitsi Iframe — ALWAYS mounted, just hidden when minimized */}
+        <div ref={undefined} style={{
+          flex: 1, minHeight: 0,
+          ...(minimized ? { position: 'absolute', left: -9999, top: -9999, width: 1, height: 1, opacity: 0, pointerEvents: 'none' as const } : {}),
+        }}>
+          <iframe
+            ref={iframeRef}
+            src={jitsiUrl}
+            style={{ width: '100%', height: '100%', border: 'none' }}
+            allow="camera; microphone; fullscreen; display-capture; screen-sharing"
+            title="Video Meet"
+          />
+        </div>
 
         {/* Minimized PiP view */}
         {minimized && (
@@ -124,7 +111,7 @@ export function VideoCallModal({ roomId, otherUserName, otherUserAvatar, onClose
             </div>
             <div style={{ minWidth: 0 }}>
               <div style={{ color: '#fff', fontSize: 12, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{otherUserName}</div>
-              <div style={{ color: '#10b981', fontSize: 9 }}>Call in progress...</div>
+              <div style={{ color: '#10b981', fontSize: 9 }}>Meet in progress...</div>
             </div>
           </div>
         )}
@@ -169,7 +156,7 @@ export function IncomingCallModal({ callerName, callerAvatar, onAccept, onDeclin
         </div>
 
         <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>{callerName}</div>
-        <div style={{ fontSize: 12, color: '#10b981', marginBottom: 24 }}>Incoming video call...</div>
+        <div style={{ fontSize: 12, color: '#10b981', marginBottom: 24 }}>Incoming meet request...</div>
 
         <div style={{ display: 'flex', justifyContent: 'center', gap: 16 }}>
           <button onClick={onDecline} style={{
@@ -191,78 +178,4 @@ export function IncomingCallModal({ callerName, callerAvatar, onAccept, onDeclin
       </div>
     </div>
   );
-}
-
-// ── Video Call Hook ────────────────────────────────────────
-export function useVideoCall(roomId: string) {
-  const { profile } = useAuth();
-  const [activeCall, setActiveCall] = useState<string | null>(null);
-  const [incomingCall, setIncomingCall] = useState<{ roomName: string; callerName: string; callerAvatar?: string } | null>(null);
-
-  useEffect(() => {
-    if (!profile || !roomId) return;
-
-    const channel = supabase.channel(`video-call-${roomId}`)
-      .on('broadcast', { event: 'incoming_call' }, (payload) => {
-        const data = payload.payload as any;
-        if (data.caller_id !== profile.id) {
-          setIncomingCall({
-            roomName: data.room_name,
-            callerName: data.caller_name,
-            callerAvatar: data.caller_avatar,
-          });
-        }
-      })
-      .on('broadcast', { event: 'call_declined' }, (payload) => {
-        const data = payload.payload as any;
-        if (data.caller_id === profile.id) {
-          setActiveCall(null);
-        }
-      })
-      .subscribe();
-
-    return () => { channel.unsubscribe(); };
-  }, [profile, roomId]);
-
-  const startCall = useCallback(async () => {
-    const roomName = `genosha-call-${roomId}-${Date.now().toString(36)}`;
-    setActiveCall(roomName);
-
-    const channel = supabase.channel(`video-call-${roomId}`);
-    await channel.send({
-      type: 'broadcast',
-      event: 'incoming_call',
-      payload: {
-        room_name: roomName,
-        caller_id: profile?.id,
-        caller_name: profile?.full_name || 'User',
-        caller_avatar: profile?.avatar_url,
-      },
-    });
-  }, [roomId, profile]);
-
-  const acceptCall = useCallback(() => {
-    if (incomingCall) {
-      setActiveCall(incomingCall.roomName);
-      setIncomingCall(null);
-    }
-  }, [incomingCall]);
-
-  const declineCall = useCallback(async () => {
-    if (incomingCall) {
-      const channel = supabase.channel(`video-call-${roomId}`);
-      await channel.send({
-        type: 'broadcast',
-        event: 'call_declined',
-        payload: { caller_id: profile?.id },
-      });
-      setIncomingCall(null);
-    }
-  }, [incomingCall, roomId, profile]);
-
-  const endCall = useCallback(() => {
-    setActiveCall(null);
-  }, []);
-
-  return { activeCall, incomingCall, startCall, acceptCall, declineCall, endCall };
 }
