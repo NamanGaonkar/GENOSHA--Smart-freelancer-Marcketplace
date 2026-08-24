@@ -234,6 +234,7 @@ export default function AdminPage() {
 
   return (
     <div className="gen-page">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-28 box-border">
       <div style={{ marginBottom: 24 }}>
         <h1 className="gen-heading" style={{ fontSize: 'clamp(1.5rem, 3vw, 2rem)' }}>Admin Panel</h1>
         <p style={{ color: GREEN, fontSize: 14, marginTop: 4, fontWeight: 500 }}>Welcome Admin, you have full control</p>
@@ -251,7 +252,7 @@ export default function AdminPage() {
       {tab === 'overview' && (
         <>
           {/* Row 0: 4 Stats — full width, even columns */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-10">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 w-full">
             {[
               { icon: <Users size={16} />, label: 'Total Users', value: users.length },
               { icon: <Briefcase size={16} />, label: 'Total Jobs', value: jobs.length },
@@ -266,7 +267,7 @@ export default function AdminPage() {
           </div>
 
           {/* Row 1: User Roles + Contract Status — 2-col equal */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 w-full">
             {roleData.length > 0 && (
               <div className="gen-card min-w-0" style={{ padding: 20 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 12 }}>User Roles Distribution</div>
@@ -311,7 +312,7 @@ export default function AdminPage() {
           </div>
 
           {/* Row 2: Platform Volume Trend + User Growth — 2-col equal */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 w-full">
             {volumeOverTime.length > 0 && (
               <div className="gen-card min-w-0" style={{ padding: 20 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -645,6 +646,7 @@ export default function AdminPage() {
           </>
         )}
       </Modal>
+      </div>
     </div>
   );
 }
