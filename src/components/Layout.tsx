@@ -111,7 +111,7 @@ export default function Layout() {
       // The actual peer notification is handled by the caller's startCall or by postMessage hangup
     }
     setActiveCall(null);
-    setIsRinging(false);
+    
   }, [profile]);
 
   return (
