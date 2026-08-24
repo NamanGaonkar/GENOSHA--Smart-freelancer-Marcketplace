@@ -37,13 +37,13 @@ export default function Layout() {
       .on('broadcast', { event: 'call_accepted' }, (payload) => {
         const d = payload.payload as any;
         setActiveCall(d.room_name);
-        setIsRinging(false);
+
       })
       .on('broadcast', { event: 'call_declined' }, (payload) => {
         const d = payload.payload as any;
         if (d.caller_id === profile.id) {
           setActiveCall(null);
-          setIsRinging(false);
+  
           toast('Meet declined');
         }
       })
@@ -51,7 +51,7 @@ export default function Layout() {
         const d = payload.payload as any;
         if (d.user_id !== profile.id) {
           setActiveCall(null);
-          setIsRinging(false);
+  
           toast('Meet ended by other party');
         }
       })
@@ -64,7 +64,7 @@ export default function Layout() {
   const startCall = useCallback(async (peerName: string, peerAvatar?: string, peerId?: string) => {
     if (!profile) return;
     const roomName = `genosha-meet-${Date.now().toString(36)}`;
-    setIsRinging(true);
+
     setCallPeerName(peerName);
     setCallPeerAvatar(peerAvatar);
 
