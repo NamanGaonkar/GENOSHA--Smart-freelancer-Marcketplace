@@ -127,7 +127,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10">
           {[
             { icon: <Briefcase size={16} />, label: 'Available Jobs', value: recentJobs.length },
             { icon: <FileText size={16} />, label: 'Active Contracts', value: activeContracts.length },
@@ -143,7 +143,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Charts */}
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_1.5fr] gap-3 md:gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_1.5fr] gap-3 md:gap-4 mb-8">
           <div className="gen-card min-w-0" style={{ overflow: 'hidden' }}>
             <div className="gen-card-header">
               <div className="gen-card-header-left">
@@ -213,7 +213,7 @@ export default function DashboardPage() {
 
         {/* Skills in Demand */}
           {skillsNeeded.length > 0 && (
-            <div className="gen-card min-w-0 mt-4" style={{ overflow: 'hidden' }}>
+            <div className="gen-card min-w-0 mt-6" style={{ overflow: 'hidden' }}>
               <div className="gen-card-header">
                 <div className="gen-card-header-left">
                   <div className="gen-card-icon" style={{ background: 'rgba(6,182,212,0.1)', color: CYAN }}><BarChart3 size={16} /></div>
@@ -375,7 +375,7 @@ export default function DashboardPage() {
           <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 2 }}>Welcome back, {profile?.full_name}</p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10">
           {[
             { icon: <Briefcase size={16} />, label: 'Total Jobs', value: jobs.length },
             { icon: <Briefcase size={16} />, label: 'Active Jobs', value: activeJobs.length },
@@ -390,7 +390,7 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr] gap-3 md:gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr] gap-3 md:gap-4 mb-8">
           <div className="gen-card min-w-0" style={{ overflow: 'hidden' }}>
             <div className="gen-card-header">
               <div className="gen-card-header-left">
