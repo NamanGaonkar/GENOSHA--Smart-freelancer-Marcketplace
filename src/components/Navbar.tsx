@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -11,6 +11,24 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Lock body scroll when mobile drawer is open to prevent glitch
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    };
+  }, [mobileOpen]);
 
   const handleSignOut = async () => { await signOut(); setMobileOpen(false); navigate('/'); };
   const isActive = (path: string) => location.pathname === path;
@@ -146,14 +164,18 @@ export default function Navbar() {
       {mobileOpen && (
         <>
           <div onClick={() => setMobileOpen(false)} style={{
-            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+            position: 'fixed', inset: 0, height: '100%', minHeight: '100vh',
+            background: 'rgba(0,0,0,0.5)',
             backdropFilter: 'blur(4px)', zIndex: 59,
+            overscrollBehavior: 'none', WebkitOverflowScrolling: 'auto',
           }} />
           <div style={{
             position: 'fixed', top: 56, right: 0, bottom: 0, width: 280, zIndex: 60,
             background: 'var(--bg-card)', borderLeft: '1px solid var(--border)',
             display: 'flex', flexDirection: 'column', padding: '16px 0', overflowY: 'auto',
             boxShadow: '-8px 0 30px rgba(0,0,0,0.3)',
+            overscrollBehavior: 'contain',
+            WebkitOverflowScrolling: 'touch',
           }}>
             {/* User info */}
             {profile && (
