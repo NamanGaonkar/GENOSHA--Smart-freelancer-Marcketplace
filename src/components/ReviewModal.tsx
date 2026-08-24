@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Star, X } from 'lucide-react';
 import { createReview, getReviewByContractAndReviewer } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -22,13 +22,13 @@ export default function ReviewModal({ contractId, revieweeId, revieweeName, role
   const [loading, setLoading] = useState(false);
   const [alreadyReviewed, setAlreadyReviewed] = useState(false);
 
-  useState(() => {
+  useEffect(() => {
     if (profile) {
       getReviewByContractAndReviewer(contractId, profile.id).then(({ data }) => {
         if (data) setAlreadyReviewed(true);
       });
     }
-  });
+  }, [contractId, profile]);
 
   if (alreadyReviewed) {
     return (

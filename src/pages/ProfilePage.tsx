@@ -243,17 +243,22 @@ export default function ProfilePage() {
         )}
 
         {/* Reviews Section */}
-        {!isAdmin && reviews.length > 0 && !editing && (
+        {!editing && (
           <div className="gen-card" style={{ padding: 20, marginTop: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
               <Star size={15} color="#f59e0b" fill="#f59e0b" />
-              <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>Reviews ({reviews.length})</span>
-              <span style={{ fontSize: 12, color: '#f59e0b', marginLeft: 4 }}>
-                {((profile as any)?.average_rating || 0).toFixed(1)} ★
-              </span>
+              <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>Reviews ({(profile as any)?.total_reviews || reviews.length})</span>
+              {(profile as any)?.average_rating > 0 && (
+                <span style={{ fontSize: 12, color: '#f59e0b', marginLeft: 4 }}>
+                  {((profile as any)?.average_rating || 0).toFixed(1)} ★
+                </span>
+              )}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {reviews.slice(0, 5).map((r: any) => (
+              {reviews.length === 0 ? (
+                <p style={{ color: 'var(--text-muted)', fontSize: 13, textAlign: 'center', padding: '16px 0' }}>No reviews yet</p>
+              ) : (
+                reviews.slice(0, 5).map((r: any) => (
                 <div key={r.id} style={{ padding: '12px 14px', borderRadius: 10, background: 'var(--bg-input)', border: '1px solid var(--border)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                     <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--accent-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -265,7 +270,8 @@ export default function ProfilePage() {
                   {r.comment && <p style={{ fontSize: 12, color: 'var(--text-sec)', lineHeight: 1.5 }}>{r.comment}</p>}
                   <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>{new Date(r.created_at).toLocaleDateString()}</div>
                 </div>
-              ))}
+              ))
+              )}
             </div>
           </div>
         )}
