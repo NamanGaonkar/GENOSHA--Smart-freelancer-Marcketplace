@@ -6,6 +6,7 @@ import { getChatRooms, getMessages, sendMessage, markMessagesAsRead, uploadFile 
 import type { MessageWithSender } from '../types/database';
 import { Send, MessageSquare, ArrowLeft, Paperclip, File, X, Video } from 'lucide-react';
 import { VideoCallModal, IncomingCallModal } from '../components/VideoCall';
+import toast from 'react-hot-toast';
 
 export default function MessagesPage() {
   const { profile } = useAuth();
