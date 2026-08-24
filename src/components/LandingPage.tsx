@@ -192,8 +192,10 @@ const FEATURES = [
   },
   {
     Icon: Video,
-    title: 'HD Video Calls with Jitsi Meet',
+    title: 'HD Video Calls via Jitsi',
     desc: 'Built-in video conferencing powered by Jitsi Meet. Screen sharing, real-time collaboration, zero setup required.',
+    link: 'https://jitsi.org',
+    linkLabel: 'Get started with Jitsi',
   },
 ];
 
@@ -202,11 +204,15 @@ function FeatureCard({
   title,
   desc,
   delay,
+  link,
+  linkLabel,
 }: {
   Icon: typeof MessageSquareCode;
   title: string;
   desc: string;
   delay: number;
+  link?: string;
+  linkLabel?: string;
 }) {
   const { ref, visible } = useInView(0.2);
 
@@ -221,6 +227,7 @@ function FeatureCard({
         transition: `all 0.5s cubic-bezier(0.22,1,0.36,1) ${delay}ms, border 0.3s ease, background 0.3s ease`,
         opacity: visible ? 1 : 0,
         transform: visible ? 'translateY(0)' : 'translateY(32px)',
+        display: 'flex', flexDirection: 'column',
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.border = '1px solid rgba(39,243,169,0.15)';
@@ -257,6 +264,23 @@ function FeatureCard({
       >
         {desc}
       </p>
+      {link && (
+        <a
+          href={link}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            marginTop: 'auto', paddingTop: 16,
+            fontSize: 12, fontWeight: 500, color: '#27f3a9',
+            textDecoration: 'none', transition: 'color 0.2s',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = '#34d399')}
+          onMouseLeave={(e) => (e.currentTarget.style.color = '#27f3a9')}
+        >
+          {linkLabel || 'Learn more'} <ArrowRight size={12} />
+        </a>
+      )}
     </div>
   );
 }
@@ -302,8 +326,9 @@ function Features() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-            gap: 20,
+            gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+            gap: 16,
+            justifyItems: 'center',
           }}
         >
           {FEATURES.map((f, i) => (
