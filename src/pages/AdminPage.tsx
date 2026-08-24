@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { formatDual } from '../lib/utils';
+import { getReviewsForUser } from '../lib/api';
 import {
   Users, Briefcase, Shield, Search, Trash2, TrendingUp, DollarSign,
   ChevronDown, ChevronUp, Eye, Ban, CheckCircle, Edit3, X, ExternalLink,
@@ -88,6 +89,7 @@ export default function AdminPage() {
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
+  const [selectedUserReviews, setSelectedUserReviews] = useState<any[]>([]);
 
   const loadData = async () => {
     const [u, j, c] = await Promise.all([
@@ -102,6 +104,13 @@ export default function AdminPage() {
   };
 
   useEffect(() => { loadData(); }, []);
+  useEffect(() => {
+    if (selectedUser) {
+      getReviewsForUser(selectedUser.id).then(({ data }) => setSelectedUserReviews(data || []));
+    } else {
+      setSelectedUserReviews([]);
+    }
+  }, [selectedUser]);
   useEffect(() => {
     const ch = supabase.channel('admin-rt')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => loadData())
@@ -554,6 +563,36 @@ export default function AdminPage() {
                 </div>
               </div>
             )}
+            {/* Reviews */}
+            <div style={{ padding: '16px 28px 0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                <Star size={13} color="#f59e0b" fill="#f59e0b" />
+                <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Reviews ({selectedUser.total_reviews || selectedUserReviews.length})</span>
+                {selectedUser.average_rating > 0 && (
+                  <span style={{ fontSize: 11, color: '#f59e0b' }}>{selectedUser.average_rating.toFixed(1)} ★</span>
+                )}
+              </div>
+              {selectedUserReviews.length === 0 ? (
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', padding: '8px 0' }}>No reviews yet</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {selectedUserReviews.slice(0, 5).map((r: any) => (
+                    <div key={r.id} style={{ padding: '10px 14px', borderRadius: 10, background: 'var(--bg-input)', border: '1px solid var(--border)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                        <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--accent-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <span style={{ color: 'var(--accent)', fontSize: 9, fontWeight: 600 }}>{r.reviewer?.full_name?.charAt(0) || '?'}</span>
+                        </div>
+                        <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text)' }}>{r.reviewer?.full_name || 'Anonymous'}</span>
+                        <span style={{ fontSize: 10, color: '#f59e0b' }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span>
+                        <span style={{ fontSize: 9, color: 'var(--text-muted)', marginLeft: 'auto' }}>{r.role === 'client_to_freelancer' ? 'Client → Freelancer' : 'Freelancer → Client'}</span>
+                      </div>
+                      {r.comment && <p style={{ fontSize: 11, color: 'var(--text-sec)', lineHeight: 1.5 }}>{r.comment}</p>}
+                      <div style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 3 }}>{new Date(r.created_at).toLocaleDateString()}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
             <div style={{ padding: '24px 28px', display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 16, borderTop: '1px solid var(--border)' }}>
               <button onClick={() => setSelectedUser(null)} style={{ padding: '10px 24px', borderRadius: 9999, fontSize: 13, fontWeight: 500, background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text)', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s' }}>Close</button>
               {selectedUser.role !== 'admin' && (
