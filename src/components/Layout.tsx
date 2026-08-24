@@ -117,17 +117,7 @@ export default function Layout() {
 
   return (
     <div className="gen-page">
-      <Navbar
-        isRinging={isRinging}
-        incomingCall={incomingCall}
-        onAcceptMeet={acceptCall}
-        onDeclineMeet={declineCall}
-        onStartMeet={startCall}
-        activeCall={activeCall}
-        onEndMeet={endCall}
-        callPeerName={callPeerName}
-        callPeerAvatar={callPeerAvatar}
-      />
+      <Navbar />
       <main style={{ maxWidth: 1200, margin: '0 auto', overflowX: 'hidden' }}>
         <Outlet />
       </main>
