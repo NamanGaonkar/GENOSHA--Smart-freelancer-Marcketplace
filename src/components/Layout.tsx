@@ -14,8 +14,6 @@ export default function Layout() {
   const [activeCall, setActiveCall] = useState<string | null>(null);
   const [callPeerName, setCallPeerName] = useState('');
   const [callPeerAvatar, setCallPeerAvatar] = useState<string | undefined>();
-  // eslint-disable-next-line
-  const [isRinging, setIsRinging] = useState(false);
   const [incomingCall, setIncomingCall] = useState<{
     roomName: string; callerName: string; callerAvatar?: string; callerId: string;
   } | null>(null);
