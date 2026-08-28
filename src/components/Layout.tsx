@@ -139,7 +139,7 @@ export default function Layout() {
 
     pollRef.current = setInterval(poll, 1000);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
-  }, [profile?.id, activeCall, outgoingCall, callPeerId]);
+  }, [profile?.id, activeCall, outgoingCall, callPeerId, incomingCall]);
 
   // ── Listen for start-meet from MessagesPage ─────────────
   useEffect(() => {
