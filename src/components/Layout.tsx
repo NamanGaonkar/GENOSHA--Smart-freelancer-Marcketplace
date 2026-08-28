@@ -9,21 +9,23 @@ import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 
 /*
-  Call signaling uses BOTH:
-  1. Supabase broadcast (instant, same channel for both users)
-  2. DB call_signaling table (fallback, persistent)
-
-  Both users subscribe to: signaling-{sorted-user-ids}
-  This ensures both parties are on the exact same channel.
+  ════════════════════════════════════════════════════════════
+  CALL SIGNALING — Database Polling (1s interval)
+  
+  Works on localhost AND Vercel. No broadcast/realtime needed.
+  
+  Flow:
+  1. Caller inserts call_sessions row (status='calling')
+  2. Receiver's poll picks it up → IncomingCallModal
+  3. Receiver updates status='accepted' → both open Jitsi
+  4. Either updates status='ended' → both close Jitsi
+  ════════════════════════════════════════════════════════════
 */
-
-function getChannelName(id1: string, id2: string) {
-  return `signaling-${[id1, id2].sort().join('-')}`;
-}
 
 export default function Layout() {
   const { profile } = useAuth();
 
+  // ── Call state ──────────────────────────────────────────
   const [activeCall, setActiveCall] = useState<string | null>(null);
   const [callPeerName, setCallPeerName] = useState('');
   const [callPeerAvatar, setCallPeerAvatar] = useState<string | undefined>();
@@ -34,100 +36,137 @@ export default function Layout() {
   } | null>(null);
 
   const [incomingCall, setIncomingCall] = useState<{
-    roomName: string; callerName: string; callerAvatar?: string; callerId: string;
+    roomName: string; callerName: string; callerAvatar?: string; callerId: string; callId: string;
   } | null>(null);
 
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const channelsRef = useRef<Map<string, any>>(new Map());
-  const peerIdsRef = useRef<Map<string, string>>(new Map()); // roomId -> peerId
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const activeCallIdRef = useRef<string | null>(null);
 
-  // ── Get or create a broadcast channel for a peer pair ──
-  const getOrCreateChannel = useCallback((peerId: string) => {
-    if (!profile) return null;
-    const key = getChannelName(profile.id, peerId);
-    if (channelsRef.current.has(key)) return channelsRef.current.get(key);
+  // ── Poll for incoming calls every 1 second ──────────────
+  useEffect(() => {
+    if (!profile) return;
 
-    const ch = supabase.channel(key, { config: { broadcast: { self: false } } });
-    channelsRef.current.set(key, ch);
-    return ch;
-  }, [profile]);
+    const poll = async () => {
+      try {
+        // Don't poll if we're already in a call or showing outgoing/incoming
+        if (activeCall || outgoingCall) return;
 
-  // ── Send signal via broadcast + DB fallback ──
-  const sendSignal = useCallback(async (peerId: string, event: string, payload: Record<string, any>) => {
-    const ch = getOrCreateChannel(peerId);
-    if (ch) {
-      // Broadcast for instant delivery
-      await ch.send({ type: 'broadcast', event, payload: { ...payload, sender_id: profile?.id } });
-    }
-    // DB fallback
-    try {
-      await supabase.from('call_signaling').insert({
-        room_id: payload.room_name || 'unknown',
-        sender_id: profile?.id,
-        receiver_id: peerId,
-        event,
-        payload,
-      });
-    } catch (_) {}
-  }, [profile, getOrCreateChannel]);
+        // Check for incoming calls (status='calling' where I am receiver)
+        const { data: incoming, error: e1 } = await supabase
+          .from('call_sessions')
+          .select('*')
+          .eq('receiver_id', profile.id)
+          .eq('status', 'calling')
+          .order('started_at', { ascending: false })
+          .limit(1);
 
-  // ── Subscribe to signals from a peer ──
-  const subscribeToPeer = useCallback((peerId: string) => {
-    const ch = getOrCreateChannel(peerId);
-    if (!ch) return;
+        if (!e1 && incoming && incoming.length > 0) {
+          const call = incoming[0];
 
-    ch.on('broadcast', { event: 'incoming_call' }, (p) => {
-      const d = p.payload;
-      if (d.sender_id === profile?.id) return;
-      setIncomingCall({
-        roomName: d.room_name,
-        callerName: d.caller_name || 'User',
-        callerAvatar: d.caller_avatar,
-        callerId: d.sender_id,
-      });
-    });
+          // Don't show if we already have this call open
+          if (activeCallIdRef.current === call.id) return;
 
-    ch.on('broadcast', { event: 'call_accepted' }, (p) => {
-      const d = p.payload;
-      if (d.sender_id === profile?.id) return;
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      const pn = outgoingCall?.peerName || d.peer_name || 'User';
-      const pa = outgoingCall?.peerAvatar || d.peer_avatar;
-      setOutgoingCall(null);
-      setCallPeerName(pn);
-      setCallPeerAvatar(pa);
-      setCallPeerId(d.sender_id);
-      setActiveCall(d.room_name);
-    });
+          // Get caller's profile
+          const { data: callerProfile } = await supabase
+            .from('profiles')
+            .select('full_name, avatar_url')
+            .eq('id', call.caller_id)
+            .single();
 
-    ch.on('broadcast', { event: 'call_declined' }, (p) => {
-      const d = p.payload;
-      if (d.sender_id === profile?.id) return;
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      setOutgoingCall(null);
-      toast.error('Meet declined');
-    });
+          setIncomingCall({
+            roomName: call.room_id,
+            callerName: callerProfile?.full_name || 'User',
+            callerAvatar: callerProfile?.avatar_url,
+            callerId: call.caller_id,
+            callId: call.id,
+          });
+          activeCallIdRef.current = call.id;
+          return;
+        }
 
-    ch.on('broadcast', { event: 'call_ended' }, (p) => {
-      const d = p.payload;
-      if (d.sender_id === profile?.id) return;
-      setActiveCall(null);
-      setOutgoingCall(null);
-      setIncomingCall(null);
-      toast('Meet ended');
-    });
+        // Check if our outgoing call was accepted
+        if (outgoingCall) {
+          const { data: accepted, error: e2 } = await supabase
+            .from('call_sessions')
+            .select('status')
+            .eq('room_id', outgoingCall.roomName)
+            .eq('status', 'accepted')
+            .limit(1);
 
-    ch.subscribe();
-  }, [profile, getOrCreateChannel, outgoingCall]);
+          if (!e2 && accepted && accepted.length > 0) {
+            // Call was accepted! Open Jitsi
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+            setOutgoingCall(null);
+            setCallPeerName(outgoingCall.peerName);
+            setCallPeerAvatar(outgoingCall.peerAvatar);
+            setCallPeerId(outgoingCall.peerId);
+            setActiveCall(outgoingCall.roomName);
+            return;
+          }
 
-  // ── Listen for start-meet from MessagesPage ──
+          // Check if our outgoing call was declined or ended
+          const { data: ended } = await supabase
+            .from('call_sessions')
+            .select('status')
+            .eq('room_id', outgoingCall.roomName)
+            .in('status', ['declined', 'ended', 'missed'])
+            .limit(1);
+
+          if (ended && ended.length > 0) {
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+            setOutgoingCall(null);
+            toast.error(ended[0].status === 'declined' ? 'Meet declined' : 'No answer');
+          }
+        }
+
+        // Check if our active call was ended by the other party
+        if (activeCall && callPeerId) {
+          const { data: callEnded } = await supabase
+            .from('call_sessions')
+            .select('status')
+            .eq('room_id', activeCall)
+            .eq('status', 'ended')
+            .limit(1);
+
+          if (callEnded && callEnded.length > 0) {
+            setActiveCall(null);
+            setCallPeerId(null);
+            toast('Meet ended by other party');
+          }
+        }
+      } catch (_) { /* polling error, ignore */ }
+    };
+
+    pollRef.current = setInterval(poll, 1000);
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+  }, [profile?.id, activeCall, outgoingCall, callPeerId]);
+
+  // ── Listen for start-meet from MessagesPage ─────────────
   useEffect(() => {
     const handler = async (e: Event) => {
       const detail = (e as CustomEvent).detail;
       if (!detail?.peerName || !profile) return;
 
       const roomName = `genosha-meet-${Date.now().toString(36)}`;
-      peerIdsRef.current.set(roomName, detail.peerId);
+
+      // Insert call_sessions row
+      const { data: callRow, error } = await supabase
+        .from('call_sessions')
+        .insert({
+          room_id: roomName,
+          caller_id: profile.id,
+          receiver_id: detail.peerId,
+          status: 'calling',
+          call_type: 'video',
+        })
+        .select('id')
+        .single();
+
+      if (error) {
+        toast.error('Failed to start meet');
+        return;
+      }
 
       setOutgoingCall({
         roomName, peerName: detail.peerName,
@@ -137,68 +176,76 @@ export default function Layout() {
       setCallPeerAvatar(detail.peerAvatar);
       setCallPeerId(detail.peerId);
 
-      // Subscribe to this peer's channel first, then send
-      subscribeToPeer(detail.peerId);
-      await new Promise(r => setTimeout(r, 500)); // Wait for subscription
-
-      await sendSignal(detail.peerId, 'incoming_call', {
-        room_name: roomName,
-        caller_name: profile.full_name || 'User',
-        caller_avatar: (profile as any).avatar_url,
-      });
-
-      timeoutRef.current = setTimeout(() => {
+      // 30-second timeout
+      timeoutRef.current = setTimeout(async () => {
         setOutgoingCall(null);
+        await supabase
+          .from('call_sessions')
+          .update({ status: 'missed', ended_at: new Date().toISOString() })
+          .eq('room_id', roomName);
         toast('No answer — meet missed');
       }, 30000);
     };
 
     window.addEventListener('genosha:start-meet', handler);
     return () => window.removeEventListener('genosha:start-meet', handler);
-  }, [profile, sendSignal, subscribeToPeer]);
+  }, [profile]);
 
-  // ── Accept call ──
+  // ── Accept call → update DB ──
   const acceptCall = useCallback(async () => {
     if (!incomingCall || !profile) return;
+
+    await supabase
+      .from('call_sessions')
+      .update({ status: 'accepted' })
+      .eq('id', incomingCall.callId);
+
     setCallPeerName(incomingCall.callerName);
     setCallPeerAvatar(incomingCall.callerAvatar);
     setCallPeerId(incomingCall.callerId);
     setIncomingCall(null);
     setActiveCall(incomingCall.roomName);
+  }, [incomingCall, profile]);
 
-    subscribeToPeer(incomingCall.callerId);
-    await new Promise(r => setTimeout(r, 300));
-
-    await sendSignal(incomingCall.callerId, 'call_accepted', {
-      room_name: incomingCall.roomName,
-      peer_name: profile.full_name || 'User',
-      peer_avatar: (profile as any).avatar_url,
-    });
-  }, [incomingCall, profile, sendSignal, subscribeToPeer]);
-
-  // ── Decline call ──
+  // ── Decline call → update DB ──
   const declineCall = useCallback(async () => {
-    if (!incomingCall || !profile) return;
-    await sendSignal(incomingCall.callerId, 'call_declined', { room_name: incomingCall.roomName });
+    if (!incomingCall) return;
+
+    await supabase
+      .from('call_sessions')
+      .update({ status: 'declined', ended_at: new Date().toISOString() })
+      .eq('id', incomingCall.callId);
+
     setIncomingCall(null);
-  }, [incomingCall, profile, sendSignal]);
+    activeCallIdRef.current = null;
+  }, [incomingCall]);
 
-  // ── Cancel outgoing ──
+  // ── Cancel outgoing → update DB ──
   const cancelOutgoingCall = useCallback(async () => {
-    if (!outgoingCall || !profile) return;
+    if (!outgoingCall) return;
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    await sendSignal(outgoingCall.peerId, 'call_ended', { room_name: outgoingCall.roomName });
-    setOutgoingCall(null);
-  }, [outgoingCall, profile, sendSignal]);
 
-  // ── End active call ──
+    await supabase
+      .from('call_sessions')
+      .update({ status: 'ended', ended_at: new Date().toISOString() })
+      .eq('room_id', outgoingCall.roomName);
+
+    setOutgoingCall(null);
+  }, [outgoingCall]);
+
+  // ── End active call → update DB ──
   const endCall = useCallback(async () => {
-    if (!profile || !callPeerId) { setActiveCall(null); return; }
-    await sendSignal(callPeerId, 'call_ended', { room_name: activeCall || '' });
+    if (activeCall) {
+      await supabase
+        .from('call_sessions')
+        .update({ status: 'ended', ended_at: new Date().toISOString() })
+        .eq('room_id', activeCall);
+    }
     setActiveCall(null);
     setCallPeerId(null);
-  }, [profile, callPeerId, activeCall, sendSignal]);
+  }, [activeCall]);
 
+  // Cleanup timeout
   useEffect(() => () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); }, []);
 
   return (
@@ -211,13 +258,29 @@ export default function Layout() {
       <GlobalToast />
 
       {outgoingCall && (
-        <OutgoingCallModal peerName={outgoingCall.peerName} peerAvatar={outgoingCall.peerAvatar} onCancel={cancelOutgoingCall} />
+        <OutgoingCallModal
+          peerName={outgoingCall.peerName}
+          peerAvatar={outgoingCall.peerAvatar}
+          onCancel={cancelOutgoingCall}
+        />
       )}
+
       {incomingCall && (
-        <IncomingCallModal callerName={incomingCall.callerName} callerAvatar={incomingCall.callerAvatar} onAccept={acceptCall} onDecline={declineCall} />
+        <IncomingCallModal
+          callerName={incomingCall.callerName}
+          callerAvatar={incomingCall.callerAvatar}
+          onAccept={acceptCall}
+          onDecline={declineCall}
+        />
       )}
+
       {activeCall && (
-        <VideoCallModal roomId={activeCall} otherUserName={callPeerName} otherUserAvatar={callPeerAvatar} onEnd={endCall} />
+        <VideoCallModal
+          roomId={activeCall}
+          otherUserName={callPeerName}
+          otherUserAvatar={callPeerAvatar}
+          onEnd={endCall}
+        />
       )}
     </div>
   );
