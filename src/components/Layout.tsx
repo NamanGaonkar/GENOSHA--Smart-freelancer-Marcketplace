@@ -50,7 +50,6 @@ export default function Layout() {
     const poll = async () => {
       try {
         // Check for incoming calls (status='calling' where I am receiver)
-        // Skip if we already have an incoming modal, outgoing call, or active call
         if (!activeCall && !outgoingCall && !incomingCall) {
           const { data: incoming, error: e1 } = await supabase
           .from('call_sessions')
@@ -84,6 +83,20 @@ export default function Layout() {
           return;
         }
         } // end incoming calls check
+
+        // If we have an incoming modal showing, check if the caller cancelled
+        if (incomingCall) {
+          const { data: callStatus } = await supabase
+            .from('call_sessions')
+            .select('status')
+            .eq('id', incomingCall.callId)
+            .single();
+
+          if (callStatus && callStatus.status !== 'calling') {
+            setIncomingCall(null);
+            activeCallIdRef.current = null;
+          }
+        }
 
         // Check if our outgoing call was accepted
         if (outgoingCall) {

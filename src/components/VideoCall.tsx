@@ -16,12 +16,9 @@ interface VideoCallProps {
 export function VideoCallModal({ roomId, otherUserName, otherUserAvatar, onEnd }: VideoCallProps) {
   const { profile } = useAuth();
   const [minimized, setMinimized] = useState(false);
-  const [audioMuted, setAudioMuted] = useState(false);
-  const [videoOff, setVideoOff] = useState(false);
   const [duration, setDuration] = useState(0);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  // Duration timer
   useEffect(() => {
     const timer = setInterval(() => setDuration((d) => d + 1), 1000);
     return () => clearInterval(timer);
@@ -34,28 +31,17 @@ export function VideoCallModal({ roomId, otherUserName, otherUserAvatar, onEnd }
   };
 
   const handleEndCall = useCallback(() => {
-    // Tell Jitsi to hang up via postMessage before closing
     try {
       iframeRef.current?.contentWindow?.postMessage(
-        JSON.stringify({ type: 'hangup' }),
-        'https://meet.jit.si'
+        JSON.stringify({ type: 'hangup' }), '*'
       );
-    } catch (_) { /* cross-origin ignore */ }
+    } catch (_) {}
     onEnd();
   }, [onEnd]);
 
   if (!profile) return null;
 
-  const jitsiUrl = `https://meet.jit.si/${roomId}` +
-    `#config.toolbarButtons=%5B%22microphone%22%2C%22camera%22%2C%22desktop%22%2C%22fullscreen%22%2C%22hangup%22%2C%22tileview%22%5D` +
-    `&config.startWithAudioMuted=false` +
-    `&config.startWithVideoMuted=false` +
-    `&config.disableDeepLinking=true` +
-    `&config.externalConnectUrl=null` +
-    `&config.enableExternalConnection=false` +
-    `&config.p2p.enabled=true` +
-    `&config.analytics.disabled=true` +
-    `&userInfo.displayName=${encodeURIComponent(profile.full_name || 'User')}`;
+  const jitsiUrl = `https://meet.jit.si/${roomId}#config.toolbarButtons=%5B%22microphone%22%2C%22camera%22%2C%22desktop%22%2C%22fullscreen%22%2C%22hangup%22%2C%22tileview%22%5D&config.disableDeepLinking=true&config.p2p.enabled=true&config.analytics.disabled=true&userInfo.displayName=${encodeURIComponent(profile.full_name || 'User')}`;
 
   return (
     <div style={{
@@ -87,12 +73,10 @@ export function VideoCallModal({ roomId, otherUserName, otherUserAvatar, onEnd }
         transition: 'all 0.35s cubic-bezier(0.4,0,0.2,1)',
         position: 'relative',
       }}>
-        {/* ─── Header Bar ─── */}
+        {/* Header */}
         <div style={{
           padding: minimized ? '4px 8px' : '8px 14px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           background: 'rgba(16,185,129,0.06)',
           borderBottom: '1px solid rgba(255,255,255,0.04)',
           flexShrink: 0,
@@ -102,7 +86,6 @@ export function VideoCallModal({ roomId, otherUserName, otherUserAvatar, onEnd }
               width: minimized ? 22 : 28, height: minimized ? 22 : 28, borderRadius: '50%',
               overflow: 'hidden', border: '2px solid #10b981', flexShrink: 0,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 0 10px rgba(16,185,129,0.3)',
             }}>
               {otherUserAvatar ? (
                 <img src={otherUserAvatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -126,42 +109,17 @@ export function VideoCallModal({ roomId, otherUserName, otherUserAvatar, onEnd }
               )}
             </div>
           </div>
-
           <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-            {!minimized && (
-              <>
-                <button onClick={() => setAudioMuted(!audioMuted)} style={{
-                  width: 30, height: 30, borderRadius: 8,
-                  border: audioMuted ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(255,255,255,0.08)',
-                  background: audioMuted ? 'rgba(239,68,68,0.12)' : 'rgba(255,255,255,0.06)',
-                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: audioMuted ? '#ef4444' : '#fff',
-                }} title={audioMuted ? 'Unmute' : 'Mute'}>
-                  {audioMuted ? <MicOff size={13} /> : <Mic size={13} />}
-                </button>
-                <button onClick={() => setVideoOff(!videoOff)} style={{
-                  width: 30, height: 30, borderRadius: 8,
-                  border: videoOff ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(255,255,255,0.08)',
-                  background: videoOff ? 'rgba(239,68,68,0.12)' : 'rgba(255,255,255,0.06)',
-                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: videoOff ? '#ef4444' : '#fff',
-                }} title={videoOff ? 'Turn on camera' : 'Turn off camera'}>
-                  {videoOff ? <CameraOff size={13} /> : <Camera size={13} />}
-                </button>
-              </>
-            )}
             <button onClick={() => setMinimized(!minimized)} style={{
               width: 30, height: 30, borderRadius: 8,
               border: '1px solid rgba(255,255,255,0.08)',
               background: 'rgba(255,255,255,0.06)',
-              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#fff',
-            }} title={minimized ? 'Maximize' : 'Minimize'}>
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
+            }}>
               {minimized ? <Maximize2 size={12} /> : <Minimize2 size={12} />}
             </button>
             <button onClick={handleEndCall} style={{
-              width: minimized ? 30 : 'auto',
-              height: 30,
+              width: minimized ? 30 : 'auto', height: 30,
               padding: minimized ? 0 : '0 12px',
               borderRadius: 8, border: 'none',
               background: 'linear-gradient(135deg, #ef4444, #dc2626)',
@@ -174,7 +132,7 @@ export function VideoCallModal({ roomId, otherUserName, otherUserAvatar, onEnd }
           </div>
         </div>
 
-        {/* ─── Jitsi Iframe — ALWAYS mounted, hidden when minimized ─── */}
+        {/* Jitsi Iframe — ALWAYS mounted */}
         <div style={{
           flex: 1, minHeight: 0, position: 'relative',
           ...(minimized
@@ -190,7 +148,7 @@ export function VideoCallModal({ roomId, otherUserName, otherUserAvatar, onEnd }
           />
         </div>
 
-        {/* ─── Minimized PiP Info ─── */}
+        {/* Minimized PiP */}
         {minimized && (
           <div style={{
             position: 'absolute', bottom: 8, left: 8, right: 8,
@@ -208,7 +166,7 @@ export function VideoCallModal({ roomId, otherUserName, otherUserAvatar, onEnd }
 }
 
 /* ════════════════════════════════════════════════════════════
-   INCOMING CALL MODAL
+   INCOMING CALL MODAL — with guaranteed ringtone stop
    ════════════════════════════════════════════════════════════ */
 
 interface IncomingCallModalProps {
@@ -220,24 +178,25 @@ interface IncomingCallModalProps {
 }
 
 export function IncomingCallModal({ callerName, callerAvatar, callType = 'video', onAccept, onDecline }: IncomingCallModalProps) {
-
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const oscRefs = useRef<OscillatorNode[]>([]);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    // Play ringtone using Web Audio API
-    let osc1: OscillatorNode | null = null;
-    let osc2: OscillatorNode | null = null;
     let ctx: AudioContext | null = null;
-    let ringInterval: ReturnType<typeof setInterval> | null = null;
+    const oscs: OscillatorNode[] = [];
 
     try {
       ctx = new AudioContext();
-      osc1 = ctx.createOscillator();
-      osc2 = ctx.createOscillator();
+      audioCtxRef.current = ctx;
+
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
       const gain = ctx.createGain();
 
       osc1.frequency.value = 440;
       osc2.frequency.value = 480;
-      gain.gain.value = 0.1;
+      gain.gain.value = 0.08;
 
       osc1.connect(gain);
       osc2.connect(gain);
@@ -245,19 +204,40 @@ export function IncomingCallModal({ callerName, callerAvatar, callType = 'video'
 
       osc1.start();
       osc2.start();
+      oscs.push(osc1, osc2);
+      oscRefs.current = oscs;
 
-      ringInterval = setInterval(() => {
-        gain.gain.value = gain.gain.value > 0 ? 0 : 0.1;
+      // Ring pattern
+      intervalRef.current = setInterval(() => {
+        gain.gain.value = gain.gain.value > 0 ? 0 : 0.08;
       }, 1000);
-    } catch (_) { /* no audio */ }
+    } catch (_) {}
 
+    // AGGRESSIVE cleanup — guaranteed stop on unmount
     return () => {
-      try { osc1?.stop(); } catch (_) {}
-      try { osc2?.stop(); } catch (_) {}
-      if (ringInterval) clearInterval(ringInterval);
-      try { ctx?.close(); } catch (_) {}
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      oscs.forEach((o) => { try { o.stop(); } catch (_) {} });
+      oscRefs.current = [];
+      if (ctx) {
+        try { ctx.close(); } catch (_) {}
+        audioCtxRef.current = null;
+      }
     };
   }, []);
+
+  // Force-stop ringtone when accept or decline is called
+  const stopRing = useCallback(() => {
+    if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
+    oscRefs.current.forEach((o) => { try { o.stop(); } catch (_) {} });
+    oscRefs.current = [];
+    if (audioCtxRef.current) { try { audioCtxRef.current.close(); } catch (_) {} audioCtxRef.current = null; }
+  }, []);
+
+  const handleAccept = useCallback(() => { stopRing(); onAccept(); }, [stopRing, onAccept]);
+  const handleDecline = useCallback(() => { stopRing(); onDecline(); }, [stopRing, onDecline]);
 
   return (
     <div style={{
@@ -273,7 +253,6 @@ export function IncomingCallModal({ callerName, callerAvatar, callType = 'video'
         animation: 'gen-zoomIn 0.3s ease-out',
         boxShadow: '0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(16,185,129,0.1)',
       }}>
-        {/* Avatar with pulse ring */}
         <div style={{ position: 'relative', width: 80, height: 80, margin: '0 auto 20px' }}>
           <div style={{
             position: 'absolute', inset: -4, borderRadius: '50%',
@@ -294,40 +273,28 @@ export function IncomingCallModal({ callerName, callerAvatar, callType = 'video'
             )}
           </div>
         </div>
-
-        <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>
-          {callerName}
-        </div>
+        <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>{callerName}</div>
         <div style={{ fontSize: 13, color: '#10b981', marginBottom: 6, fontWeight: 500 }}>
           Incoming {callType === 'presentation' ? 'screen share' : 'video'} call
         </div>
         <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 28 }}>
           Tap accept to join the meet
         </div>
-
         <div style={{ display: 'flex', justifyContent: 'center', gap: 24 }}>
-          <button onClick={() => onDecline()} style={{
+          <button onClick={handleDecline} style={{
             width: 60, height: 60, borderRadius: '50%', border: 'none',
             background: 'rgba(239,68,68,0.12)', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            transition: 'all 0.2s',
-          }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.25)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.12)'; }}
-          >
+          }}>
             <PhoneOff size={24} color="#ef4444" />
           </button>
-          <button onClick={() => onAccept()} style={{
+          <button onClick={handleAccept} style={{
             width: 60, height: 60, borderRadius: '50%', border: 'none',
             background: 'linear-gradient(135deg, #10b981, #059669)', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 0 24px rgba(16,185,129,0.4)',
             animation: 'pulse 2s ease-in-out infinite',
-            transition: 'all 0.2s',
-          }}
-            onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.08)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
-          >
+          }}>
             <Phone size={24} color="#fff" />
           </button>
         </div>
@@ -337,7 +304,7 @@ export function IncomingCallModal({ callerName, callerAvatar, callType = 'video'
 }
 
 /* ════════════════════════════════════════════════════════════
-   OUTGOING CALL MODAL — Shows "Ringing..." to the caller
+   OUTGOING CALL MODAL
    ════════════════════════════════════════════════════════════ */
 
 interface OutgoingCallProps {
@@ -367,7 +334,6 @@ export function OutgoingCallModal({ peerName, peerAvatar, onCancel }: OutgoingCa
         textAlign: 'center',
         animation: 'gen-zoomIn 0.3s ease-out',
       }}>
-        {/* Pulsing avatar */}
         <div style={{
           width: 80, height: 80, borderRadius: '50%', margin: '0 auto 20px',
           overflow: 'hidden', border: '3px solid #10b981',
@@ -382,25 +348,17 @@ export function OutgoingCallModal({ peerName, peerAvatar, onCancel }: OutgoingCa
             </div>
           )}
         </div>
-
-        <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>
-          {peerName}
-        </div>
+        <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>{peerName}</div>
         <div style={{ fontSize: 13, color: '#10b981', marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
           <span style={{ animation: 'pulse 1.5s infinite' }}>Calling</span>
           <span style={{ letterSpacing: 2 }}>...</span>
           <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 4 }}>{elapsed}s</span>
         </div>
-
         <button onClick={onCancel} style={{
           padding: '12px 32px', borderRadius: 12, border: 'none',
           background: 'rgba(239,68,68,0.12)', color: '#ef4444',
           fontSize: 13, fontWeight: 600, cursor: 'pointer',
-          transition: 'all 0.15s',
-        }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.25)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.12)'; }}
-        >
+        }}>
           Cancel
         </button>
       </div>
