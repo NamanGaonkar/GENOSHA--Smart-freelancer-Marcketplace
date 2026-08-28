@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Phone, PhoneOff, Minimize2, Maximize2, Mic, MicOff, Camera, CameraOff } from 'lucide-react';
+import { Phone, PhoneOff, Minimize2, Maximize2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 /* ════════════════════════════════════════════════════════════
