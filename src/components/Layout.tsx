@@ -49,11 +49,10 @@ export default function Layout() {
 
     const poll = async () => {
       try {
-        // Don't poll if we're already in a call or showing outgoing/incoming
-        if (activeCall || outgoingCall) return;
-
         // Check for incoming calls (status='calling' where I am receiver)
-        const { data: incoming, error: e1 } = await supabase
+        // Skip if we already have an incoming modal, outgoing call, or active call
+        if (!activeCall && !outgoingCall && !incomingCall) {
+          const { data: incoming, error: e1 } = await supabase
           .from('call_sessions')
           .select('*')
           .eq('receiver_id', profile.id)
@@ -84,6 +83,7 @@ export default function Layout() {
           activeCallIdRef.current = call.id;
           return;
         }
+        } // end incoming calls check
 
         // Check if our outgoing call was accepted
         if (outgoingCall) {
