@@ -40,8 +40,7 @@ export function useNotifications() {
     if (!profile) return;
     const ch = supabase.channel('notif-rt')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${profile.id}` }, (payload) => {
-        const n = payload.new as AppNotification;
-        toast(n.title + ': ' + n.body, { icon: '🔔' });
+        // GlobalToast handles the floating popup — just refresh the dropdown data
         loadNotifications();
       })
       .subscribe();
