@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Video, Phone, PhoneOff, Minimize2, Maximize2, Mic, MicOff, Camera, CameraOff } from 'lucide-react';
+import { Phone, PhoneOff, Minimize2, Maximize2, Mic, MicOff, Camera, CameraOff } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import toast from 'react-hot-toast';
 
 /* ════════════════════════════════════════════════════════════
    VIDEO CALL MODAL — Full Jitsi Integration
@@ -221,15 +220,19 @@ interface IncomingCallModalProps {
 }
 
 export function IncomingCallModal({ callerName, callerAvatar, callType = 'video', onAccept, onDecline }: IncomingCallModalProps) {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+
 
   useEffect(() => {
-    // Play ringtone
+    // Play ringtone using Web Audio API
+    let osc1: OscillatorNode | null = null;
+    let osc2: OscillatorNode | null = null;
+    let ctx: AudioContext | null = null;
+    let ringInterval: ReturnType<typeof setInterval> | null = null;
+
     try {
-      const ctx = new AudioContext();
-      // Create a simple ringtone using Web Audio API
-      const osc1 = ctx.createOscillator();
-      const osc2 = ctx.createOscillator();
+      ctx = new AudioContext();
+      osc1 = ctx.createOscillator();
+      osc2 = ctx.createOscillator();
       const gain = ctx.createGain();
 
       osc1.frequency.value = 440;
@@ -243,16 +246,16 @@ export function IncomingCallModal({ callerName, callerAvatar, callType = 'video'
       osc1.start();
       osc2.start();
 
-      // Ring pattern: on 1s, off 1s
-      const ringInterval = setInterval(() => {
+      ringInterval = setInterval(() => {
         gain.gain.value = gain.gain.value > 0 ? 0 : 0.1;
       }, 1000);
-
-      audioRef.current = { stop: () => { osc1.stop(); osc2.stop(); clearInterval(ringInterval); ctx.close(); } } as any;
-    } catch (_) { /* fallback: no audio */ }
+    } catch (_) { /* no audio */ }
 
     return () => {
-      try { audioRef.current?.stop(); } catch (_) {}
+      try { osc1?.stop(); } catch (_) {}
+      try { osc2?.stop(); } catch (_) {}
+      if (ringInterval) clearInterval(ringInterval);
+      try { ctx?.close(); } catch (_) {}
     };
   }, []);
 
@@ -303,7 +306,7 @@ export function IncomingCallModal({ callerName, callerAvatar, callType = 'video'
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'center', gap: 24 }}>
-          <button onClick={() => { try { audioRef.current?.stop(); } catch (_) {} onDecline(); }} style={{
+          <button onClick={() => onDecline()} style={{
             width: 60, height: 60, borderRadius: '50%', border: 'none',
             background: 'rgba(239,68,68,0.12)', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -314,7 +317,7 @@ export function IncomingCallModal({ callerName, callerAvatar, callType = 'video'
           >
             <PhoneOff size={24} color="#ef4444" />
           </button>
-          <button onClick={() => { try { audioRef.current?.stop(); } catch (_) {} onAccept(); }} style={{
+          <button onClick={() => onAccept()} style={{
             width: 60, height: 60, borderRadius: '50%', border: 'none',
             background: 'linear-gradient(135deg, #10b981, #059669)', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',

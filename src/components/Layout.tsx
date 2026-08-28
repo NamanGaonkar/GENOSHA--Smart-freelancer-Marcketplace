@@ -87,29 +87,28 @@ export default function Layout() {
 
         // Check if our outgoing call was accepted
         if (outgoingCall) {
+          const oc = outgoingCall as any;
           const { data: accepted, error: e2 } = await supabase
             .from('call_sessions')
             .select('status')
-            .eq('room_id', outgoingCall.roomName)
+            .eq('room_id', oc.roomName)
             .eq('status', 'accepted')
             .limit(1);
 
           if (!e2 && accepted && accepted.length > 0) {
-            // Call was accepted! Open Jitsi
             if (timeoutRef.current) clearTimeout(timeoutRef.current);
             setOutgoingCall(null);
-            setCallPeerName(outgoingCall.peerName);
-            setCallPeerAvatar(outgoingCall.peerAvatar);
-            setCallPeerId(outgoingCall.peerId);
-            setActiveCall(outgoingCall.roomName);
+            setCallPeerName(oc.peerName);
+            setCallPeerAvatar(oc.peerAvatar);
+            setCallPeerId(oc.peerId);
+            setActiveCall(oc.roomName);
             return;
           }
 
-          // Check if our outgoing call was declined or ended
           const { data: ended } = await supabase
             .from('call_sessions')
             .select('status')
-            .eq('room_id', outgoingCall.roomName)
+            .eq('room_id', oc.roomName)
             .in('status', ['declined', 'ended', 'missed'])
             .limit(1);
 
@@ -151,7 +150,7 @@ export default function Layout() {
       const roomName = `genosha-meet-${Date.now().toString(36)}`;
 
       // Insert call_sessions row
-      const { data: callRow, error } = await supabase
+      const { error } = await supabase
         .from('call_sessions')
         .insert({
           room_id: roomName,
@@ -159,9 +158,7 @@ export default function Layout() {
           receiver_id: detail.peerId,
           status: 'calling',
           call_type: 'video',
-        })
-        .select('id')
-        .single();
+        });
 
       if (error) {
         toast.error('Failed to start meet');

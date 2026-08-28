@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { Bell, Briefcase, FileText, MessageSquare, X, Check } from 'lucide-react';
-import toast from 'react-hot-toast';
 
 export interface AppNotification {
   id: string;
@@ -39,8 +38,7 @@ export function useNotifications() {
   useEffect(() => {
     if (!profile) return;
     const ch = supabase.channel('notif-rt')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${profile.id}` }, (payload) => {
-        // GlobalToast handles the floating popup — just refresh the dropdown data
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${profile.id}` }, () => {
         loadNotifications();
       })
       .subscribe();
