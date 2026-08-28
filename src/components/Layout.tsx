@@ -8,75 +8,126 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 
+/*
+  ════════════════════════════════════════════════════════════
+  CALL SIGNALING — DB-backed via `call_signaling` table
+  
+  Flow:
+  1. Caller clicks Meet → inserts `incoming_call` row
+  2. Receiver's subscription picks it up → shows IncomingCallModal
+  3. Receiver clicks Accept → inserts `call_accepted` row  
+  4. Caller's subscription picks it up → both open Jitsi
+  5. Either clicks End → inserts `call_ended` row → other closes
+  ════════════════════════════════════════════════════════════
+*/
+
+async function insertSignal(
+  roomId: string,
+  senderId: string,
+  receiverId: string,
+  event: string,
+  payload: Record<string, any> = {}
+) {
+  try {
+    await supabase.from('call_signaling').insert({
+      room_id: roomId,
+      sender_id: senderId,
+      receiver_id: receiverId,
+      event,
+      payload,
+    });
+  } catch (e) {
+    console.error('Signal insert error:', e);
+  }
+}
+
 export default function Layout() {
   const { profile } = useAuth();
 
-  // ── Global video call state ────────────────────────────
+  // ── Video call state ────────────────────────────────────
   const [activeCall, setActiveCall] = useState<string | null>(null);
   const [callPeerName, setCallPeerName] = useState('');
   const [callPeerAvatar, setCallPeerAvatar] = useState<string | undefined>();
-
-  // Outgoing call state (caller sees "Ringing...")
+  const [callPeerId, setCallPeerId] = useState<string | null>(null);
   const [outgoingCall, setOutgoingCall] = useState<{
     roomName: string; peerName: string; peerAvatar?: string; peerId: string;
   } | null>(null);
-
-  // Incoming call state (receiver sees accept/decline modal)
   const [incomingCall, setIncomingCall] = useState<{
     roomName: string; callerName: string; callerAvatar?: string; callerId: string;
   } | null>(null);
 
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const channelRef = useRef<any>(null);
+  const signalingChannelRef = useRef<any>(null);
 
-  // ── Global incoming call listener (works on ANY page) ──
+  // ── Persistent signaling listener via DB ─────────────────
   useEffect(() => {
     if (!profile) return;
 
-    const ch = supabase.channel(`vc-user-${profile.id}`, {
-      config: { broadcast: { self: false } },
-    })
-      .on('broadcast', { event: 'incoming_call' }, (payload) => {
-        const d = payload.payload as any;
-        if (d.caller_id !== profile.id) {
-          setIncomingCall({
-            roomName: d.room_name,
-            callerName: d.caller_name,
-            callerAvatar: d.caller_avatar,
-            callerId: d.caller_id,
-          });
+    const channel = supabase
+      .channel(`signaling-${profile.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'call_signaling',
+          filter: `receiver_id=eq.${profile.id}`,
+        },
+        async (payload) => {
+          const row = payload.new as any;
+          const evt = row.event;
+          const senderId = row.sender_id;
+          const roomId = row.room_id;
+          const p = typeof row.payload === 'string' ? JSON.parse(row.payload) : (row.payload || {});
+
+          // Ignore our own signals
+          if (senderId === profile.id) return;
+
+          console.log('[Signaling] Received:', evt, 'from', senderId, 'room:', roomId);
+
+          if (evt === 'incoming_call') {
+            setIncomingCall({
+              roomName: roomId,
+              callerName: p.caller_name || 'User',
+              callerAvatar: p.caller_avatar,
+              callerId: senderId,
+            });
+          }
+
+          if (evt === 'call_accepted') {
+            // Our outgoing call was accepted — open Jitsi
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+            const peerName = outgoingCall?.peerName || p.peer_name || 'User';
+            const peerAvatar = outgoingCall?.peerAvatar || p.peer_avatar;
+            setOutgoingCall(null);
+            setCallPeerName(peerName);
+            setCallPeerAvatar(peerAvatar);
+            setCallPeerId(senderId);
+            setActiveCall(roomId);
+          }
+
+          if (evt === 'call_declined') {
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+            setOutgoingCall(null);
+            toast.error('Meet declined');
+          }
+
+          if (evt === 'call_ended') {
+            setActiveCall(null);
+            setOutgoingCall(null);
+            setIncomingCall(null);
+            toast('Meet ended by other party');
+          }
         }
-      })
-      .on('broadcast', { event: 'call_accepted' }, (payload) => {
-        const d = payload.payload as any;
-        if (d.accepted_by !== profile.id) {
-          // Someone else accepted our call — open Jitsi
-          if (timeoutRef.current) clearTimeout(timeoutRef.current);
-          setOutgoingCall(null);
-          setActiveCall(d.room_name);
-        }
-      })
-      .on('broadcast', { event: 'call_declined' }, (payload) => {
-        const d = payload.payload as any;
-        if (d.declined_by !== profile.id) {
-          // Someone declined our call
-          if (timeoutRef.current) clearTimeout(timeoutRef.current);
-          setOutgoingCall(null);
-          toast.error('Meet declined');
-        }
-      })
-      .on('broadcast', { event: 'call_ended' }, (payload) => {
-        const d = payload.payload as any;
-        if (d.ended_by !== profile.id) {
-          setActiveCall(null);
-          setOutgoingCall(null);
-          toast('Meet ended by other party');
-        }
-      })
+      )
       .subscribe();
 
-    channelRef.current = ch;
-    return () => { ch.unsubscribe(); channelRef.current = null; };
+    signalingChannelRef.current = channel;
+
+    return () => {
+      channel.unsubscribe();
+      signalingChannelRef.current = null;
+    };
   }, [profile?.id]);
 
   // ── Listen for start-meet events from MessagesPage ──
@@ -87,7 +138,6 @@ export default function Layout() {
 
       const roomName = `genosha-meet-${Date.now().toString(36)}`;
 
-      // Show outgoing call modal immediately
       setOutgoingCall({
         roomName,
         peerName: detail.peerName,
@@ -97,35 +147,21 @@ export default function Layout() {
 
       setCallPeerName(detail.peerName);
       setCallPeerAvatar(detail.peerAvatar);
+      setCallPeerId(detail.peerId);
 
-      // Send signal to recipient
-      if (detail.peerId) {
-        const peerCh = supabase.channel(`vc-user-${detail.peerId}`);
-        await peerCh.send({
-          type: 'broadcast',
-          event: 'incoming_call',
-          payload: {
-            room_name: roomName,
-            caller_id: profile.id,
-            caller_name: profile.full_name || 'User',
-            caller_avatar: (profile as any).avatar_url,
-          },
-        });
-      }
+      // Insert signaling row — receiver's subscription picks it up
+      await insertSignal(roomName, profile.id, detail.peerId, 'incoming_call', {
+        caller_name: profile.full_name || 'User',
+        caller_avatar: (profile as any).avatar_url,
+      });
 
-      // 30-second timeout — auto-miss if unanswered
+      // 30-second timeout
       timeoutRef.current = setTimeout(async () => {
         setOutgoingCall(null);
         toast('No answer — meet missed');
-        // Mark as missed in DB if table exists
         try {
-          await supabase.from('call_sessions').insert({
-            room_id: roomName,
-            caller_id: profile.id,
-            receiver_id: detail.peerId,
-            status: 'missed',
-          });
-        } catch (_) { /* table may not exist yet */ }
+          await insertSignal(roomName, profile.id, detail.peerId, 'call_ended', {});
+        } catch (_) {}
       }, 30000);
     };
 
@@ -133,81 +169,68 @@ export default function Layout() {
     return () => window.removeEventListener('genosha:start-meet', handler);
   }, [profile]);
 
-  // ── Accept incoming call ──
+  // ── Accept incoming call → insert `call_accepted` ──
   const acceptCall = useCallback(async () => {
     if (incomingCall && profile) {
-      // Notify the caller that we accepted
-      const callerCh = supabase.channel(`vc-user-${incomingCall.callerId}`);
-      await callerCh.send({
-        type: 'broadcast',
-        event: 'call_accepted',
-        payload: {
-          room_name: incomingCall.roomName,
-          accepted_by: profile.id,
-        },
-      });
-
       setCallPeerName(incomingCall.callerName);
       setCallPeerAvatar(incomingCall.callerAvatar);
+      setCallPeerId(incomingCall.callerId);
       setIncomingCall(null);
+
+      // This is the critical fix: insert into DB so caller's subscription sees it
+      await insertSignal(
+        incomingCall.roomName,
+        profile.id,
+        incomingCall.callerId,
+        'call_accepted',
+        {
+          peer_name: profile.full_name || 'User',
+          peer_avatar: (profile as any).avatar_url,
+        }
+      );
+
+      // Also open Jitsi on our side immediately
       setActiveCall(incomingCall.roomName);
     }
   }, [incomingCall, profile]);
 
-  // ── Decline incoming call ──
+  // ── Decline incoming call → insert `call_declined` ──
   const declineCall = useCallback(async () => {
     if (incomingCall && profile) {
-      const callerCh = supabase.channel(`vc-user-${incomingCall.callerId}`);
-      await callerCh.send({
-        type: 'broadcast',
-        event: 'call_declined',
-        payload: {
-          declined_by: profile.id,
-        },
-      });
+      await insertSignal(
+        incomingCall.roomName,
+        profile.id,
+        incomingCall.callerId,
+        'call_declined',
+        {}
+      );
       setIncomingCall(null);
     }
   }, [incomingCall, profile]);
 
-  // ── Cancel outgoing call ──
+  // ── Cancel outgoing call → insert `call_declined` (from receiver's perspective) ──
   const cancelOutgoingCall = useCallback(async () => {
     if (outgoingCall && profile) {
-      // Notify recipient that call was cancelled (same as decline)
-      const peerCh = supabase.channel(`vc-user-${outgoingCall.peerId}`);
-      await peerCh.send({
-        type: 'broadcast',
-        event: 'call_declined',
-        payload: { declined_by: profile.id },
-      });
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      // Send ended so receiver closes modal
+      await insertSignal(outgoingCall.roomName, profile.id, outgoingCall.peerId, 'call_ended', {});
       setOutgoingCall(null);
     }
   }, [outgoingCall, profile]);
 
-  // ── End active call ──
+  // ── End active call → insert `call_ended` to notify peer ──
   const endCall = useCallback(async () => {
-    if (profile) {
-      // Notify peer to close their side too
-      // We broadcast on the caller's or receiver's channel
-      // The VideoCallModal handles Jitsi hangup via postMessage
-      try {
-        if (channelRef.current) {
-          await channelRef.current.send({
-            type: 'broadcast',
-            event: 'call_ended',
-            payload: { ended_by: profile.id },
-          });
-        }
-      } catch (_) {}
+    if (profile && callPeerId) {
+      const roomId = activeCall || '';
+      await insertSignal(roomId, profile.id, callPeerId, 'call_ended', {});
     }
     setActiveCall(null);
-  }, [profile]);
+    setCallPeerId(null);
+  }, [profile, callPeerId, activeCall]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
+    return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
   }, []);
 
   return (
@@ -219,7 +242,7 @@ export default function Layout() {
       <AIChatbot />
       <GlobalToast />
 
-      {/* ── Outgoing Call Modal (Caller sees "Ringing...") ── */}
+      {/* ── Outgoing Call Modal ── */}
       {outgoingCall && (
         <OutgoingCallModal
           peerName={outgoingCall.peerName}
@@ -228,7 +251,7 @@ export default function Layout() {
         />
       )}
 
-      {/* ── Incoming Call Modal (Receiver sees Accept/Decline) ── */}
+      {/* ── Incoming Call Modal ── */}
       {incomingCall && (
         <IncomingCallModal
           callerName={incomingCall.callerName}
@@ -238,7 +261,7 @@ export default function Layout() {
         />
       )}
 
-      {/* ── Active Jitsi Meet Modal ── */}
+      {/* ── Active Jitsi Meet ── */}
       {activeCall && (
         <VideoCallModal
           roomId={activeCall}
