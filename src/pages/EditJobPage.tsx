@@ -152,7 +152,7 @@ export default function EditJobPage() {
         </div>
         <div>
           <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: 'var(--text-muted)', marginBottom: 6 }}>Deadline (optional)</label>
-          <input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} className="gen-input" style={{ width: '100%' }} />
+          <input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} className="gen-input" style={{ width: '100%' }} min={new Date().toISOString().split('T')[0]} />
         </div>
         <div>
           <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: 'var(--text-muted)', marginBottom: 6 }}>Skills Required</label>

@@ -156,5 +156,5 @@ export default function JobsPage() {
 }
 
 function statusBadge(s: string) {
-  switch (s) { case 'open': return 'gen-badge-green'; case 'in_progress': return 'gen-badge-amber'; case 'completed': return 'gen-badge-blue'; default: return 'gen-badge-gray'; }
+  switch (s) { case 'pending_approval': return 'gen-badge-amber'; case 'open': return 'gen-badge-green'; case 'in_progress': return 'gen-badge-amber'; case 'completed': return 'gen-badge-blue'; default: return 'gen-badge-gray'; }
 }

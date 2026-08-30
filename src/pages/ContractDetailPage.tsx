@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { getContract, getMilestonesByContract, createMilestone, updateMilestone, fundEscrow, submitWork, approveCompletion, cancelContract, createDispute } from '../lib/api';
+import { getContract, getMilestonesByContract, createMilestone, updateMilestone, submitWork, approveCompletion, cancelContract, createDispute } from '../lib/api';
 import { formatDual } from '../lib/utils';
 import type { Milestone, ContractWithDetails } from '../types/database';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Plus, CheckCircle, XCircle, Clock, Send, MessageSquare, X, CreditCard, Upload, File, Image, ExternalLink, Star } from 'lucide-react';
+import { ArrowLeft, Plus, CheckCircle, XCircle, Clock, Send, MessageSquare, X, Upload, File, Image, ExternalLink, Star } from 'lucide-react';
 import FileDropzone from '../components/FileDropzone';
 import ReviewModal from '../components/ReviewModal';
 import InvoiceButton from '../components/InvoicePDF';
@@ -61,14 +61,7 @@ export default function ContractDetailPage() {
     setCreating(false);
   };
 
-  const handleFundEscrow = async () => {
-    if (!contract) return; setActionLoading(true);
-    const { error } = await fundEscrow(contract.id);
-    if (error) { toast.error('Failed to fund escrow'); setActionLoading(false); return; }
-    setContract((prev) => prev ? { ...prev, status: 'active', escrow_funded: true } : prev);
-    toast.success('Escrow funded! Freelancer can now start working.');
-    setActionLoading(false);
-  };
+
 
   const handleSubmitWork = async () => {
     if (!contract || !submissionNotes.trim()) return;
@@ -144,7 +137,7 @@ export default function ContractDetailPage() {
 
   const isClient = profile?.id === contract.client_id;
   const statusColor = contract.status === 'active' ? 'gen-badge-green'
-    : contract.status === 'pending_deposit' ? 'gen-badge-amber'
+    : contract.status === 'pending_deposit' ? 'gen-badge-gray'
     : contract.status === 'under_review' ? 'gen-badge-cyan'
     : contract.status === 'completed' ? 'gen-badge-green'
     : 'gen-badge-red';
@@ -175,12 +168,7 @@ export default function ContractDetailPage() {
             <MessageSquare size={13} /> {['completed', 'cancelled'].includes(contract.status) ? 'Chat (Read Only)' : 'Chat'}
           </Link>
 
-          {/* Client: Fund Escrow */}
-          {isClient && contract.status === 'pending_deposit' && (
-            <button onClick={handleFundEscrow} disabled={actionLoading} className="gen-btn-primary" style={{ padding: '8px 16px', fontSize: 12 }}>
-              <CreditCard size={13} /> Fund Escrow & Start
-            </button>
-          )}
+
 
           {/* Freelancer: Submit Work */}
           {!isClient && contract.status === 'active' && (
@@ -315,7 +303,7 @@ export default function ContractDetailPage() {
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <h2 className="gen-heading" style={{ fontSize: 18 }}>Milestones ({milestones.length})</h2>
-          {isClient && ['active', 'pending_deposit'].includes(contract.status) && (
+          {isClient && contract.status === 'active' && (
             <button onClick={() => setShowForm(true)} className="gen-btn-primary" style={{ padding: '8px 16px', fontSize: 12 }}>
               <Plus size={14} /> Add Milestone
             </button>

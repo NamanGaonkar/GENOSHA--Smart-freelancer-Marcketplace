@@ -69,7 +69,6 @@ export default function DashboardPage() {
   const activeJobs = jobs.filter((j) => j.status === 'open' || j.status === 'in_progress');
   const activeContracts = contracts.filter((c: any) => c.status === 'active');
   const completedContracts = contracts.filter((c: any) => c.status === 'completed');
-  const pendingDeposit = contracts.filter((c: any) => c.status === 'pending_deposit');
   const underReview = contracts.filter((c: any) => c.status === 'under_review');
   const USD_TO_INR = 83.5;
   const toINR = (amt: number, cur?: string) => (cur === 'inr' ? amt : Math.round(amt * USD_TO_INR));
@@ -94,7 +93,6 @@ export default function DashboardPage() {
     })();
 
     const contractStatusData = [
-      { name: 'Pending Deposit', value: pendingDeposit.length, color: AMBER },
       { name: 'Active', value: activeContracts.length, color: GREEN },
       { name: 'Under Review', value: underReview.length, color: CYAN },
       { name: 'Completed', value: completedContracts.length, color: PURPLE },
@@ -117,7 +115,7 @@ export default function DashboardPage() {
     })();
 
     const pendingProposals = proposals.filter((p: any) => p.status === 'pending').slice(0, 5);
-    const allContracts = [...pendingDeposit, ...activeContracts, ...underReview];
+    const allContracts = [...activeContracts, ...underReview];
 
     return (
       <div className="gen-page gen-dash-glow">
@@ -344,7 +342,6 @@ export default function DashboardPage() {
   // ════════════════════════════════════════════════════════════
   if (profile?.role === 'client') {
     const contractStatusData = [
-      { name: 'Pending Deposit', value: pendingDeposit.length, color: AMBER },
       { name: 'Active', value: activeContracts.length, color: GREEN },
       { name: 'Under Review', value: underReview.length, color: CYAN },
       { name: 'Completed', value: completedContracts.length, color: PURPLE },
@@ -368,7 +365,7 @@ export default function DashboardPage() {
       });
     })();
 
-    const allContracts = [...pendingDeposit, ...activeContracts, ...underReview];
+    const allContracts = [...activeContracts, ...underReview];
 
     return (
       <div className="gen-page gen-dash-glow">

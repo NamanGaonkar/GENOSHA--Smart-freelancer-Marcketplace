@@ -61,21 +61,21 @@ export default function CreateJobPage() {
       category_id: categoryId || null, skills_required: selectedSkills,
       budget_type: budgetType, budget_currency: currency,
       budget_min: Number(budgetMin), budget_max: Number(budgetMax),
-      deadline: deadline || null, status: 'open',
+      deadline: deadline || null,      status: 'pending_approval',
       attachments: attachments.map(a => a.url),
     });
     if (error) { toast.error(error.message || 'Failed to create job'); setLoading(false); return; }
-    toast.success('Job posted!');
-    // Notify all freelancers about new job
+    toast.success('Job submitted for admin approval!');
+    // Notify admin about new job pending approval
     try {
-      const { data: freelancers } = await supabase.from('profiles').select('id').eq('role', 'freelancer');
-      if (freelancers?.length) {
+      const { data: admins } = await supabase.from('profiles').select('id').eq('role', 'admin');
+      if (admins?.length) {
         await notifyUsers(
-          freelancers.map((f) => f.id),
-          'New Job Posted',
-          `${profile.full_name} posted: "${title}"`,
+          admins.map((a) => a.id),
+          'Job Pending Approval',
+          `${profile.full_name} posted: "${title}" — needs your review`,
           'job_posted',
-          `/jobs/${data?.id}`
+          `/admin`
         );
       }
     } catch (e) { console.error('Notification error:', e); }
@@ -203,7 +203,7 @@ export default function CreateJobPage() {
 
         <div>
           <label className="gen-label">Deadline (optional)</label>
-          <input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} className="gen-input" />
+          <input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} className="gen-input" min={new Date().toISOString().split('T')[0]} />
         </div>
 
         <div>

@@ -183,6 +183,28 @@ export async function deleteJob(jobId: string) {
   return { error };
 }
 
+/** Admin approves a pending job → status becomes open */
+export async function approveJob(jobId: string) {
+  const { data, error } = await supabase
+    .from('jobs')
+    .update({ status: 'open' })
+    .eq('id', jobId)
+    .select()
+    .single();
+  return { data: data as Job | null, error };
+}
+
+/** Admin rejects/declines a pending job → status becomes disabled */
+export async function rejectJob(jobId: string) {
+  const { data, error } = await supabase
+    .from('jobs')
+    .update({ status: 'disabled' })
+    .eq('id', jobId)
+    .select()
+    .single();
+  return { data: data as Job | null, error };
+}
+
 // ============================================================
 // PROPOSAL OPERATIONS
 // ============================================================
@@ -235,7 +257,7 @@ export async function updateProposalStatus(proposalId: string, status: 'accepted
 export async function createContract(contract: ContractInsert) {
   const { data, error } = await supabase
     .from('contracts')
-    .insert({ ...contract, status: 'pending_deposit', escrow_funded: false })
+    .insert({ ...contract, status: 'active', escrow_funded: false })
     .select()
     .single();
 

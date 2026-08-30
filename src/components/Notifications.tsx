@@ -9,7 +9,7 @@ export interface AppNotification {
   user_id: string;
   title: string;
   body: string;
-  type: 'job_posted' | 'proposal_received' | 'proposal_accepted' | 'proposal_rejected' | 'contract_created' | 'contract_completed' | 'job_edited' | 'job_deleted' | 'message_received';
+  type: 'job_posted' | 'proposal_received' | 'proposal_accepted' | 'proposal_rejected' | 'contract_created' | 'contract_completed' | 'job_edited' | 'job_deleted' | 'message_received' | 'job_approved' | 'job_rejected';
   link?: string;
   read: boolean;
   created_at: string;

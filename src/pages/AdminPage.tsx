@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { formatDual } from '../lib/utils';
 import { getReviewsForUser } from '../lib/api';
+import { notifyUsers } from '../components/Notifications';
 import {
   Users, Briefcase, Shield, Search, Trash2, TrendingUp, DollarSign,
   ChevronDown, ChevronUp, Eye, Ban, CheckCircle, Edit3, X, ExternalLink,
@@ -134,6 +135,12 @@ export default function AdminPage() {
     if (error) { toast.error('Failed'); return; }
     toast.success(`Job ${newStatus}`);
     setJobs((prev) => prev.map((j) => j.id === jobId ? { ...j, status: newStatus } : j));
+    // Notify the job's client about approval/rejection
+    const job = jobs.find((j) => j.id === jobId);
+    if (job && (newStatus === 'open' || newStatus === 'disabled')) {
+      const msg = newStatus === 'open' ? `Your job "${job.title}" has been approved and is now live!` : `Your job "${job.title}" was not approved. Please review and resubmit.`;
+      notifyUsers([job.client_id], newStatus === 'open' ? 'Job Approved' : 'Job Not Approved', msg, newStatus === 'open' ? 'job_approved' : 'job_rejected', `/jobs/${jobId}`).catch(() => {});
+    }
   };
 
   const handleDeleteJob = async (jobId: string, title: string) => {
@@ -167,10 +174,10 @@ export default function AdminPage() {
   ].filter((d) => d.value > 0);
 
   const jobStatusData = [
+    { name: 'Pending Approval', value: jobs.filter((j) => j.status === 'pending_approval').length, color: '#f97316' },
     { name: 'Open', value: jobs.filter((j) => j.status === 'open').length, color: GREEN },
     { name: 'In Progress', value: jobs.filter((j) => j.status === 'in_progress').length, color: CYAN },
     { name: 'Completed', value: jobs.filter((j) => j.status === 'completed').length, color: PURPLE },
-    { name: 'Closed', value: jobs.filter((j) => j.status === 'closed').length, color: '#6b7280' },
     { name: 'Disabled', value: jobs.filter((j) => j.status === 'disabled').length, color: RED },
     { name: 'Flagged', value: jobs.filter((j) => j.status === 'flagged').length, color: AMBER },
   ].filter((d) => d.value > 0);
@@ -223,6 +230,7 @@ export default function AdminPage() {
 
   const statusBadge = (s: string) => {
     switch (s) {
+      case 'pending_approval': return 'gen-badge-amber';
       case 'open': return 'gen-badge-green';
       case 'in_progress': return 'gen-badge-amber';
       case 'completed': return 'gen-badge-cyan';
@@ -488,6 +496,10 @@ export default function AdminPage() {
                       </div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                         <button onClick={() => setSelectedJob(job)} style={{ padding: '6px 14px', borderRadius: 9999, background: 'var(--accent-dim)', border: '1px solid var(--accent-border)', color: GREEN, fontSize: 11, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 4 }}><Eye size={11} /> View Full</button>
+                        {job.status === 'pending_approval' && (<>
+                          <button onClick={() => handleToggleJob(job.id, 'open')} style={{ padding: '6px 14px', borderRadius: 9999, background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', color: GREEN, fontSize: 11, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 4 }}><CheckCircle size={11} /> Approve</button>
+                          <button onClick={() => handleToggleJob(job.id, 'disabled')} style={{ padding: '6px 14px', borderRadius: 9999, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: RED, fontSize: 11, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 4 }}><Ban size={11} /> Reject</button>
+                        </>)}
                         {job.status === 'open' && (<>
                           <button onClick={() => handleToggleJob(job.id, 'disabled')} style={{ padding: '6px 14px', borderRadius: 9999, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: RED, fontSize: 11, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 4 }}><Ban size={11} /> Disable</button>
                           <button onClick={() => handleToggleJob(job.id, 'flagged')} style={{ padding: '6px 14px', borderRadius: 9999, background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', color: AMBER, fontSize: 11, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 4 }}><Edit3 size={11} /> Flag</button>

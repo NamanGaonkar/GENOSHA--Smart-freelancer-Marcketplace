@@ -395,7 +395,7 @@ function About() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20, marginTop: 48, maxWidth: 1000, margin: '48px auto 0' }}>
           {[
             { title: 'For Freelancers', desc: 'Build your profile, set your rate, and get matched with projects that fit your skills. Track earnings, deliver milestones, and grow your reputation all in one place.' },
-            { title: 'For Clients', desc: 'Post a job in minutes, review proposals from vetted talent, fund milestones with escrow, and collaborate in real-time. Pay only when the work is delivered.' },
+            { title: 'For Clients', desc: 'Post a job in minutes, review proposals from vetted talent, hire freelancers, and collaborate in real-time. Pay only when the work is delivered.' },
             { title: 'How It Works', desc: 'Create an account, browse or post a job, submit or accept proposals, lock in milestones, and ship work. Simple as that. No hidden fees.' },
             { title: 'AI-Powered Insights', desc: 'Smart matching, automated scoping, and real-time analytics to help you hire smarter and deliver faster. Built for the GenAI era.' },
           ].map((card) => (
