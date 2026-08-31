@@ -55,3 +55,11 @@ do not touch.txt
 fix_db_migration.py
 enable_realtime.py
 apply_*.mjs
+fix_jobs_rls.py
+fix_db_migration.py
+enable_realtime.py
+fix_redirect*.mjs
+apply_*.py
+apply_*.mjs
+setup_*.mjs
+fix_*.mjs
