@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { AlertTriangle, CheckCircle, XCircle, Shield } from 'lucide-react';
 import { getDisputes, resolveDispute } from '../lib/api';
 
-import { formatDual } from '../lib/utils';
+import { formatDual, formatDate } from '../lib/utils';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -82,7 +82,7 @@ export default function DisputeCenter() {
                     <span>Raised by: {d.raised?.full_name || 'Unknown'}</span>
                     <span>Client: {d.contract?.client?.full_name}</span>
                     <span>Freelancer: {d.contract?.freelancer?.full_name}</span>
-                    <span>{new Date(d.created_at).toLocaleDateString()}</span>
+                    <span>{formatDate(d.created_at)}</span>
                   </div>
                 </div>
                 <span style={{ padding: '3px 10px', borderRadius: 6, fontSize: 10, fontWeight: 600, color: statusColor(d.status), background: `${statusColor(d.status)}15`, border: `1px solid ${statusColor(d.status)}25`, flexShrink: 0, textTransform: 'capitalize' }}>

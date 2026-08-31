@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { updateProfile, getPortfolioItems, createPortfolioItem, deletePortfolioItem, getSkills, getReviewsForUser } from '../lib/api';
-import { calcProfileCompleteness, validateFileSize, validateImageType, formatFileSize, MAX_FILE_SIZE, formatDual } from '../lib/utils';
+import { calcProfileCompleteness, validateFileSize, validateImageType, formatFileSize, MAX_FILE_SIZE, formatDual, formatDate } from '../lib/utils';
 import type { PortfolioItem, Skill } from '../types/database';
 import toast from 'react-hot-toast';
 import { Edit3, Save, X, Plus, Trash2, ExternalLink, Star, Camera, MapPin, Globe, Link2, Shield } from 'lucide-react';
@@ -268,7 +268,7 @@ export default function ProfilePage() {
                     <span style={{ fontSize: 11, color: '#f59e0b' }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span>
                   </div>
                   {r.comment && <p style={{ fontSize: 12, color: 'var(--text-sec)', lineHeight: 1.5 }}>{r.comment}</p>}
-                  <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>{new Date(r.created_at).toLocaleDateString()}</div>
+                  <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>{formatDate(r.created_at)}</div>
                 </div>
               ))
               )}

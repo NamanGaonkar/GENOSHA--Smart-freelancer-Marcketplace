@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { formatDate } from '../lib/utils';
 import { Bell, Briefcase, FileText, MessageSquare, X, Check } from 'lucide-react';
 
 export interface AppNotification {
@@ -197,7 +198,7 @@ export function NotificationBell() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{n.title}</div>
                     <div className="gen-break-words" style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5, wordBreak: 'break-word', overflowWrap: 'break-word' }}>{n.body}</div>
-                    <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4, whiteSpace: 'nowrap' }}>{new Date(n.created_at).toLocaleString()}</div>
+                    <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4, whiteSpace: 'nowrap' }}>{formatDate(n.created_at)}</div>
                   </div>
                   <button
                     onClick={(e) => { e.stopPropagation(); clearNotification(n.id); }}

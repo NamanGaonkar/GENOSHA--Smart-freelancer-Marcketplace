@@ -3,7 +3,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { getJobsByClient, getContractsByUser, getOpenJobs, getProposalsByFreelancer } from '../lib/api';
-import { formatDual } from '../lib/utils';
+import { formatDual, formatDateShort } from '../lib/utils';
 import type { Job } from '../types/database';
 import { Plus, DollarSign, CheckCircle, Briefcase, FileText, TrendingUp, BarChart3, Send } from 'lucide-react';
 import {
@@ -75,11 +75,8 @@ export default function DashboardPage() {
   const totalEarned = completedContracts.reduce((s: number, c: any) => s + toINR(c.total_amount || 0, c.budget_currency), 0);
 
   const now = new Date();
-  const filterFuture = <T,>(entries: [string, T][]) => {
-    return entries.filter(([k]) => {
-      const d = new Date(k);
-      return d <= now;
-    });
+  const filterFuture = <T extends { date: Date },>(entries: [string, T][]) => {
+    return entries.filter(([, v]) => v.date <= now);
   };
 
   // ════════════════════════════════════════════════════════════
@@ -103,7 +100,7 @@ export default function DashboardPage() {
       const m: Record<string, { amount: number; date: Date }> = {};
       completedContracts.forEach((c: any) => {
         const d = new Date(c.created_at);
-        const mo = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const mo = formatDateShort(d);
         if (!m[mo]) m[mo] = { amount: 0, date: d };
         m[mo].amount += toINR(c.total_amount || 0, c.budget_currency);
       });
@@ -354,7 +351,7 @@ export default function DashboardPage() {
       const m: Record<string, { amount: number; date: Date }> = {};
       completedContracts.forEach((c: any) => {
         const d = new Date(c.created_at);
-        const mo = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const mo = formatDateShort(d);
         if (!m[mo]) m[mo] = { amount: 0, date: d };
         m[mo].amount += toINR(c.total_amount || 0, c.budget_currency);
       });

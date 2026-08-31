@@ -65,8 +65,12 @@ export function generateInvoicePDF(data: InvoiceData): jsPDF {
   doc.setFontSize(9);
   doc.setTextColor(100, 116, 139);
   doc.text(`Invoice #INV-${data.contractId.substring(0, 8).toUpperCase()}`, w - margin, y, { align: 'right' });
+  const invD = new Date(data.completedAt);
+  const invDD = String(invD.getDate()).padStart(2, '0');
+  const invMM = String(invD.getMonth() + 1).padStart(2, '0');
+  const invYYYY = invD.getFullYear();
   doc.text(
-    new Date(data.completedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+    `${invDD}/${invMM}/${invYYYY}`,
     w - margin, y + 6, { align: 'right' }
   );
 

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { getOpenJobs, getJobsByClient, getCategories } from '../lib/api';
-import { formatDual } from '../lib/utils';
+import { formatDual, formatDate } from '../lib/utils';
 import type { Category } from '../types/database';
 import { Search, Plus, DollarSign, Clock, MapPin, RefreshCw } from 'lucide-react';
 
@@ -136,7 +136,7 @@ export default function JobsPage() {
                   <div className="gen-line-clamp-2 gen-break-words" style={{ color: 'var(--text-sec)', fontSize: 13, lineHeight: 1.5 }}>{job.description}</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 10, color: 'var(--text-muted)', fontSize: 12, flexWrap: 'wrap' }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><DollarSign size={12} />{formatDual(job.budget_min, (job as any).budget_currency)} to {formatDual(job.budget_max, (job as any).budget_currency)}</span>
-                    {job.deadline && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Clock size={12} />{new Date(job.deadline).toLocaleDateString()}</span>}
+                    {job.deadline && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Clock size={12} />{formatDate(job.deadline)}</span>}
                     {job.client?.full_name && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><MapPin size={12} />{job.client.full_name}</span>}
                   </div>
                   <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>

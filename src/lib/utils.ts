@@ -34,6 +34,26 @@ export function formatCurrency(amount: number, currency: string = 'usd'): string
   return toUSD(amount);
 }
 
+// ── Date formatting (DD/MM/YYYY everywhere) ────────────────
+export function formatDate(dateStr: string | Date | null | undefined): string {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '—';
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yyyy = d.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+}
+
+// Short date for charts: DD Mon
+export function formatDateShort(dateStr: string | Date): string {
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  const dd = String(d.getDate()).padStart(2, '0');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${dd} ${months[d.getMonth()]}`;
+}
+
 // ── File validation ───────────────────────────────────────────
 export const MAX_FILE_SIZE = 1 * 1024 * 1024;
 

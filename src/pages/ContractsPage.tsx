@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getContractsByUser } from '../lib/api';
-import { formatDual } from '../lib/utils';
+import { formatDual, formatDate } from '../lib/utils';
 import { Clock, CheckCircle, XCircle, FileText } from 'lucide-react';
 
 export default function ContractsPage() {
@@ -62,7 +62,7 @@ export default function ContractsPage() {
                 <div style={{ display: 'flex', gap: 12, fontSize: 12, color: 'var(--text-muted)' }}>
                   <span style={{ color: 'var(--text-sec)', fontWeight: 600 }}>{formatDual(contract.total_amount, (contract as any).budget_currency || 'usd')}</span>
                   <span>·</span>
-                  <span>{new Date(contract.created_at).toLocaleDateString()}</span>
+                  <span>{formatDate(contract.created_at)}</span>
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

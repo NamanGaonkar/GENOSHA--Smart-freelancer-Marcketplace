@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getContract, getMilestonesByContract, createMilestone, updateMilestone, submitWork, approveCompletion, cancelContract, createDispute } from '../lib/api';
-import { formatDual } from '../lib/utils';
+import { formatDual, formatDate } from '../lib/utils';
 import type { Milestone, ContractWithDetails } from '../types/database';
 import toast from 'react-hot-toast';
 import { ArrowLeft, Plus, CheckCircle, XCircle, Clock, Send, MessageSquare, X, Upload, File, Image, ExternalLink, Star } from 'lucide-react';
@@ -345,7 +345,7 @@ export default function ContractDetailPage() {
                     {ms.description && <p className="gen-line-clamp-2 gen-break-words" style={{ color: 'var(--text-sec)', fontSize: 12, marginTop: 6, lineHeight: 1.5 }}>{ms.description}</p>}
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, marginTop: 8, fontSize: 12, color: 'var(--text-muted)' }}>
                       <span style={{ color: 'var(--text-sec)', fontWeight: 600 }}>{formatDual(ms.amount, contract?.budget_currency || 'usd')}</span>
-                      {ms.deadline && <span>Due: {new Date(ms.deadline).toLocaleDateString()}</span>}
+                      {ms.deadline && <span>Due: {formatDate(ms.deadline)}</span>}
                     </div>
                   </div>
                   <span className={`gen-badge ${milestoneBadge(ms.status)}`} style={{ flexShrink: 0 }}>{ms.status.replace('_', ' ')}</span>

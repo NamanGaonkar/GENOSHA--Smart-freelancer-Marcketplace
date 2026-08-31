@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getJob, getProposalsByJob, createProposal, updateProposalStatus, createContract, updateJob } from '../lib/api';
-import { formatDual } from '../lib/utils';
+import { formatDual, formatDate } from '../lib/utils';
 import type { JobWithClient, ProposalWithFreelancer } from '../types/database';
 import toast from 'react-hot-toast';
 import { ArrowLeft, DollarSign, Clock, Calendar, Send, Check, X, Edit3, Trash2, File, Image, ExternalLink } from 'lucide-react';
@@ -123,8 +123,8 @@ export default function JobDetailPage() {
             <h1 className="gen-heading" style={{ fontSize: 'clamp(1.3rem, 3vw, 1.8rem)' }}>{job.title} {job.is_edited && <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 400, fontStyle: 'italic' }}>(edited)</span>}</h1>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 12, color: 'var(--text-muted)', fontSize: 13 }}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}><DollarSign size={13} className="flex-shrink-0" />{formatDual(job.budget_min, (job as any).budget_currency)} – {formatDual(job.budget_max, (job as any).budget_currency)} · {job.budget_type}</span>
-              {job.deadline && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Calendar size={13} />{new Date(job.deadline).toLocaleDateString()}</span>}
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Clock size={13} />Posted {new Date(job.created_at).toLocaleDateString()}</span>
+              {job.deadline && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Calendar size={13} />{formatDate(job.deadline)}</span>}
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Clock size={13} />Posted {formatDate(job.created_at)}</span>
             </div>
           </div>
           <div className="flex items-center flex-wrap gap-2 flex-shrink-0">

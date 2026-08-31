@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { formatDual } from '../lib/utils';
+import { formatDual, formatDate, formatDateShort } from '../lib/utils';
 import { getReviewsForUser } from '../lib/api';
 import { notifyUsers } from '../components/Notifications';
 import {
@@ -189,18 +189,15 @@ export default function AdminPage() {
   ].filter((d) => d.value > 0);
 
   const now = new Date();
-  const filterFutureMonths = <T,>(entries: [string, T][]) => {
-    return entries.filter(([key]) => {
-      const d = new Date(key);
-      return d <= now;
-    });
+  const filterFutureMonths = <T extends { date: Date },>(entries: [string, T][]) => {
+    return entries.filter(([, v]) => v.date <= now);
   };
 
   const volumeOverTime = (() => {
     const m: Record<string, { amount: number; date: Date }> = {};
     contracts.forEach((c) => {
       const d = new Date(c.created_at);
-      const mo = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const mo = formatDateShort(d);
       const amt = c.total_amount || 0;
       const cur = (c as any).budget_currency || 'usd';
       const amtINR = cur === 'inr' ? amt : Math.round(amt * USD_TO_INR);
@@ -213,14 +210,14 @@ export default function AdminPage() {
 
   const userGrowth = (() => {
     const m: Record<string, { count: number; date: Date }> = {};
-    users.forEach((u) => { const d = new Date(u.created_at); const mo = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); if (!m[mo]) m[mo] = { count: 0, date: d }; m[mo].count += 1; });
+    users.forEach((u) => { const d = new Date(u.created_at); const mo = formatDateShort(d); if (!m[mo]) m[mo] = { count: 0, date: d }; m[mo].count += 1; });
     let cumulative = 0;
     return filterFutureMonths(Object.entries(m).sort((a, b) => a[1].date.getTime() - b[1].date.getTime())).slice(-8).map(([month, data]) => { cumulative += data.count; return { month, users: cumulative }; });
   })();
 
   const monthlyJobs = (() => {
     const m: Record<string, { count: number; date: Date }> = {};
-    jobs.forEach((j) => { const d = new Date(j.created_at); const mo = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); if (!m[mo]) m[mo] = { count: 0, date: d }; m[mo].count += 1; });
+    jobs.forEach((j) => { const d = new Date(j.created_at); const mo = formatDateShort(d); if (!m[mo]) m[mo] = { count: 0, date: d }; m[mo].count += 1; });
     let cumulative = 0;
     return filterFutureMonths(Object.entries(m).sort((a, b) => a[1].date.getTime() - b[1].date.getTime())).slice(-8).map(([month, data]) => { cumulative += data.count; return { month, total: cumulative }; });
   })();
@@ -489,8 +486,8 @@ export default function AdminPage() {
                             <div>Budget: {formatDual(job.budget_min, (job as any).budget_currency)} to {formatDual(job.budget_max, (job as any).budget_currency)}</div>
                             <div>Type: {job.budget_type || 'fixed'}</div>
                             <div>Skills: {(job.skills_required || []).join(', ') || 'None'}</div>
-                            {job.deadline && <div>Deadline: {new Date(job.deadline).toLocaleDateString()}</div>}
-                            <div>Created: {new Date(job.created_at).toLocaleDateString()}</div>
+                            {job.deadline && <div>Deadline: {formatDate(job.deadline)}</div>}
+                            <div>Created: {formatDate(job.created_at)}</div>
                           </div>
                         </div>
                       </div>
@@ -545,7 +542,7 @@ export default function AdminPage() {
                   <h3 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text)' }}>{selectedUser.full_name}</h3>
                   <span className={`gen-badge ${selectedUser.role === 'admin' ? 'gen-badge-green' : selectedUser.role === 'client' ? 'gen-badge-cyan' : 'gen-badge-amber'}`} style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'inline-flex', alignItems: 'center', gap: 4 }}>{selectedUser.role === 'admin' && <Shield size={10} />}{selectedUser.role}</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}><Calendar size={11} color="var(--text-muted)" /><span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Joined {new Date(selectedUser.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span></div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}><Calendar size={11} color="var(--text-muted)" /><span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Joined {formatDate(selectedUser.created_at)}</span></div>
               </div>
             </div>
             <div style={{ height: 1, background: 'var(--border)', margin: '20px 28px' }} />
@@ -599,7 +596,7 @@ export default function AdminPage() {
                         <span style={{ fontSize: 9, color: 'var(--text-muted)', marginLeft: 'auto' }}>{r.role === 'client_to_freelancer' ? 'Client → Freelancer' : 'Freelancer → Client'}</span>
                       </div>
                       {r.comment && <p style={{ fontSize: 11, color: 'var(--text-sec)', lineHeight: 1.5 }}>{r.comment}</p>}
-                      <div style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 3 }}>{new Date(r.created_at).toLocaleDateString()}</div>
+                      <div style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 3 }}>{formatDate(r.created_at)}</div>
                     </div>
                   ))}
                 </div>
@@ -632,8 +629,8 @@ export default function AdminPage() {
                 <DetailRow label="Budget Type" value={selectedJob.budget_type || 'fixed'} />
                 <DetailRow label="Category" value={selectedJob.category || 'General'} />
                 <DetailRow label="Skills" value={selectedJob.skills_required?.length ? selectedJob.skills_required.join(', ') : 'None'} />
-                {selectedJob.deadline && <DetailRow label="Deadline" value={new Date(selectedJob.deadline).toLocaleDateString()} />}
-                <DetailRow label="Created" value={new Date(selectedJob.created_at).toLocaleDateString()} />
+                {selectedJob.deadline && <DetailRow label="Deadline" value={formatDate(selectedJob.deadline)} />}
+                <DetailRow label="Created" value={formatDate(selectedJob.created_at)} />
                 <DetailRow label="Job ID" value={<span style={{ fontFamily: 'monospace', fontSize: 11 }}>{selectedJob.id}</span>} />
               </div>
             </div>
