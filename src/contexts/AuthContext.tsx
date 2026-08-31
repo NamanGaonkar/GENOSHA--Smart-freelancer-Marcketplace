@@ -18,6 +18,7 @@ interface AuthState {
 interface AuthContextType extends AuthState {
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string, fullName: string, role: UserRole) => Promise<{ error: string | null }>;
+  signInWithGoogle: () => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -68,7 +69,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!mounted) return;
 
         if (session?.user) {
-          const profile = await fetchProfile(session.user.id);
+          let profile = await fetchProfile(session.user.id);
+
+          // For Google OAuth users: update profile with Google metadata if needed
+          if (session.user.app_metadata?.provider === 'google') {
+            const md = session.user.user_metadata || {};
+            const newName = md.full_name || md.name || '';
+            const newAvatar = md.avatar_url || md.picture || '';
+            const needsUpdate = profile && (
+              (!profile.full_name || profile.full_name === 'User') && newName
+            ) || (
+              !profile?.avatar_url && newAvatar
+            );
+            if (needsUpdate && profile) {
+              const updates: Record<string, any> = {};
+              if (newName && (!profile.full_name || profile.full_name === 'User')) updates.full_name = newName;
+              if (newAvatar && !profile.avatar_url) updates.avatar_url = newAvatar;
+              if (Object.keys(updates).length > 0) {
+                await supabase.from('profiles').update(updates).eq('id', session.user.id);
+                profile = await fetchProfile(session.user.id);
+              }
+            }
+          }
+
           if (!mounted) return;
 
           setState({
@@ -93,11 +116,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
         if (!mounted) return;
 
         if (session?.user) {
-          const profile = await fetchProfile(session.user.id);
+          let profile = await fetchProfile(session.user.id);
+
+          // For Google OAuth users: ensure profile has name/avatar from Google
+          if (session.user.app_metadata?.provider === 'google' && event === 'SIGNED_IN') {
+            const md = session.user.user_metadata || {};
+            const newName = md.full_name || md.name || '';
+            const newAvatar = md.avatar_url || md.picture || '';
+            const updates: Record<string, any> = {};
+            if (newName && (!profile || !profile.full_name || profile.full_name === 'User')) updates.full_name = newName;
+            if (newAvatar && (!profile || !profile.avatar_url)) updates.avatar_url = newAvatar;
+            if (Object.keys(updates).length > 0) {
+              await supabase.from('profiles').update(updates).eq('id', session.user.id);
+              profile = await fetchProfile(session.user.id);
+            }
+          }
+
           if (!mounted) return;
 
           setState({
@@ -156,6 +194,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // ── Sign In with Google ──────────────────────────────────────
+  const signInWithGoogle = useCallback(async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + '/dashboard',
+        },
+      });
+      if (error) return { error: error.message };
+      return { error: null };
+    } catch (err) {
+      return { error: err instanceof Error ? err.message : 'Google sign in failed' };
+    }
+  }, []);
+
   // ── Sign Out ─────────────────────────────────────────────────
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
@@ -186,6 +240,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ...state,
     signIn,
     signUp,
+    signInWithGoogle,
     signOut,
     refreshProfile,
   };
