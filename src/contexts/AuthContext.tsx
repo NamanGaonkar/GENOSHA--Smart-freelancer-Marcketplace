@@ -18,7 +18,7 @@ interface AuthState {
 interface AuthContextType extends AuthState {
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string, fullName: string, role: UserRole) => Promise<{ error: string | null }>;
-  signInWithGoogle: () => Promise<{ error: string | null }>;
+  signInWithGoogle: (role?: UserRole) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -122,7 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (session?.user) {
           let profile = await fetchProfile(session.user.id);
 
-          // For Google OAuth users: ensure profile has name/avatar from Google
+          // For Google OAuth users: update profile from metadata + role from URL state
           if (session.user.app_metadata?.provider === 'google' && event === 'SIGNED_IN') {
             const md = session.user.user_metadata || {};
             const newName = md.full_name || md.name || '';
@@ -130,9 +130,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const updates: Record<string, any> = {};
             if (newName && (!profile || !profile.full_name || profile.full_name === 'User')) updates.full_name = newName;
             if (newAvatar && (!profile || !profile.avatar_url)) updates.avatar_url = newAvatar;
+            // Read role from URL query params (passed during OAuth)
+            const urlParams = new URLSearchParams(window.location.search);
+            const googleRole = urlParams.get('google_role');
+            if (googleRole && (googleRole === 'freelancer' || googleRole === 'client') && profile && profile.role !== googleRole) {
+              updates.role = googleRole;
+            }
             if (Object.keys(updates).length > 0) {
               await supabase.from('profiles').update(updates).eq('id', session.user.id);
               profile = await fetchProfile(session.user.id);
+              // Clean up URL params
+              window.history.replaceState({}, '', window.location.pathname);
             }
           }
 
@@ -195,12 +203,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // ── Sign In with Google ──────────────────────────────────────
-  const signInWithGoogle = useCallback(async () => {
+  const signInWithGoogle = useCallback(async (role?: UserRole) => {
     try {
+      const redirectBase = window.location.origin + '/dashboard';
+      const redirectTo = role ? `${redirectBase}?google_role=${role}` : redirectBase;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/dashboard',
+          redirectTo,
+          queryParams: role ? { role } : undefined,
         },
       });
       if (error) return { error: error.message };
