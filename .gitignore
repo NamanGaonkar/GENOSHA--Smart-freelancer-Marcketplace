@@ -52,3 +52,6 @@ do not touch.txt
 *.njsproj
 *.sln
 *.sw?
+fix_db_migration.py
+enable_realtime.py
+apply_*.mjs
